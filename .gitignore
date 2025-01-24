@@ -9,3 +9,5 @@ venv
 /.idea/misc.xml
 /.idea/inspectionProfiles/profiles_settings.xml
 /.idea/vcs.xml
+/.idea/dataSources.xml
+/.idea/watcherTasks.xml

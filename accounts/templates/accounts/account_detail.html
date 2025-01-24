@@ -1,0 +1,8 @@
+{% extends "accounts/base.html" %}
+
+{% block content %}
+    <h1> Accounts Detail : {{ account.username }} </h1>
+    {{ account.email }} | {{ account.phone }}
+    <hr />
+    <a href="/accounts/">목록으로</a>
+{% endblock %}
