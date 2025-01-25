@@ -21,6 +21,10 @@ from accounts import views as accounts_views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("", accounts_views.index),
     path("accounts/", accounts_views.index),
     path("accounts/<int:pk>/", accounts_views.account_detail),
+    path("accounts/new/", accounts_views.account_new),
+    path("upload/", accounts_views.upload_file, name="upload_file"),
+    path("upload/success/", accounts_views.upload_success, name="upload_success"),
 ]

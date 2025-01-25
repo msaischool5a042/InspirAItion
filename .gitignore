@@ -4,6 +4,7 @@ db.sqlite3
 /media
 venv
 .venv
+.env*
 /.idea/modules.xml
 /.idea/art_platform.iml
 /.idea/misc.xml

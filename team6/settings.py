@@ -10,7 +10,14 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
+import environ
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
+
+# Initialize environment variables
+env = environ.Env()
+environ.Env.read_env(env_file=Path(__file__).resolve().parent.parent / ".env")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,23 +27,37 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-2o=o5#_qo(+_6s0@999(@x8w0jb)##okys7n4-v@6q#=!a5)h$"
+SECRET_KEY = env("SECRET_KEY", default="django-insecure-2o=o5#_qo(+_6s0@999(@x8w0jb)##okys7n4-v@6q#=!a5)h$")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool("DEBUG", default=True)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[
+    "localhost",
+    "127.0.0.1",
+    "169.254.129.2",
+    "django-app-fwgwd5amhygnhmg6.canadacentral-01.azurewebsites.net",
+])
+
+CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[
+    "https://django-app-fwgwd5amhygnhmg6.canadacentral-01.azurewebsites.net",
+])
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    # django apps
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # third party apps
+    "django_bootstrap5",
+    "corsheaders",
+    # custom apps
     "accounts",
     "ai_playground",
     "artwork",
@@ -51,6 +72,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
 ]
 
 ROOT_URLCONF = "team6.urls"
@@ -79,11 +102,14 @@ WSGI_APPLICATION = "team6.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": env("DATABASE_ENGINE"),
+        "NAME": env("DATABASE_NAME"),
+        "USER": env("DATABASE_USER"),
+        "PASSWORD": env("DATABASE_PASSWORD"),
+        "HOST": env("DATABASE_HOST"),
+        "PORT": env("DATABASE_PORT"),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -109,17 +135,30 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "ko-kr"
 
-TIME_ZONE = "UTC"
+# TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Seoul"
 
 USE_I18N = True
 
 USE_TZ = True
 
 
+CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[
+    "https://django-app-fwgwd5amhygnhmg6.canadacentral-01.azurewebsites.net",
+])
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# STATICFILES_DIRS = (str(BASE_DIR.joinpath("static")),)
+# STATIC_URL = "static/"
+#
+# STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -127,3 +166,21 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 APPEND_SLASH = True
+
+# Azure Blob Storage settings
+STORAGE_ACCOUNT_NAME = env("STORAGE_ACCOUNT_NAME")
+STORAGE_ACCOUNT_KEY = env("STORAGE_ACCOUNT_KEY")
+CONTAINER_NAME = env("CONTAINER_NAME")
+
+AZURE_CONNECTION_STRING = (
+    f"DefaultEndpointsProtocol=https;AccountName={STORAGE_ACCOUNT_NAME};"
+    f"AccountKey={STORAGE_ACCOUNT_KEY};EndpointSuffix=core.windows.net"
+)
+
+DEFAULT_FILE_STORAGE = "storages.backends.azure_storage.AzureStorage"
+AZURE_ACCOUNT_NAME = env("STORAGE_ACCOUNT_NAME")
+AZURE_ACCOUNT_KEY = env("STORAGE_ACCOUNT_KEY")
+AZURE_CONTAINER = env("CONTAINER_NAME")
+AZURE_URL_EXPIRATION_SECS = 3600  # URL expiration time in seconds
+
+MEDIA_URL = f"https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER}/"
