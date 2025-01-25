@@ -1,15 +1,13 @@
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import CreateView
+from django.conf import settings
 
-from team6.settings import env
 from .forms import UploadFileForm
-
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
-
 from accounts.forms import AccountForm
 from accounts.models import Account
+
+from azure.storage.blob import BlobServiceClient
 
 
 # Create your views here.
@@ -19,7 +17,6 @@ def index(request: HttpRequest) -> HttpResponse:
 
 
 def account_detail(request: HttpRequest, pk: int) -> HttpResponse:
-    # account = Account.objects.get(pk=pk)
     account = get_object_or_404(Account, pk=pk)
     return render(request, "accounts/account_detail.html", {"account": account})
 
@@ -31,18 +28,6 @@ account_new = CreateView.as_view(
 )
 
 
-from urllib.parse import urljoin
-from django.conf import settings
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
-from django.shortcuts import render, redirect
-from .forms import UploadFileForm
-from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
-
-
-from django.conf import settings
-from azure.storage.blob import BlobServiceClient
-
 def upload_file(request):
     if request.method == "POST":
         form = UploadFileForm(request.POST, request.FILES)
@@ -52,9 +37,13 @@ def upload_file(request):
                 file_name = f"{file.name}"  # Ensure the file name is not None
 
                 # Azure Blob Storage 설정
-                blob_service_client = BlobServiceClient.from_connection_string(settings.AZURE_CONNECTION_STRING)
+                blob_service_client = BlobServiceClient.from_connection_string(
+                    settings.AZURE_CONNECTION_STRING
+                )
                 container_name = settings.CONTAINER_NAME
-                blob_client = blob_service_client.get_blob_client(container=container_name, blob=file_name)
+                blob_client = blob_service_client.get_blob_client(
+                    container=container_name, blob=file_name
+                )
 
                 # 파일 업로드
                 blob_client.upload_blob(file.read(), overwrite=True)
