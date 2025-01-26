@@ -1,8 +1,7 @@
-"""
-URL configuration for team6 project.
+"""team6 URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.1/topics/http/urls/
+    https://docs.djangoproject.com/en/4.0/topics/http/urls/
 Examples:
 Function views
     1. Add an import:  from my_app import views
@@ -16,15 +15,11 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path
-from accounts import views as accounts_views
+from django.urls import path, include
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", accounts_views.index),
-    path("accounts/", accounts_views.index),
-    path("accounts/<int:pk>/", accounts_views.account_detail),
-    path("accounts/new/", accounts_views.account_new),
-    path("upload/", accounts_views.upload_file, name="upload_file"),
-    path("upload/success/", accounts_views.upload_success, name="upload_success"),
+    path("", include("app.urls")),
+    path("app/", include("app.urls")),
+    path("accounts/", include("accounts.urls")),
 ]

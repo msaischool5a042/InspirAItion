@@ -1,0 +1,15 @@
+{% extends "app/base.html" %}
+{% block content %}
+<div class="container">
+    <h1>Post Detail</h1>
+    <div>
+        <h1>{{ post.title }}</h1>
+        <p>{{ post.content }}</p>
+        {% if post.image %}
+        <img src="{{ post.image }}" alt="{{ post.title }}" class="img-fluid">
+        {% endif %}
+    </div>
+    <a href="/app/{{ post.id }}/edit" class="btn btn-primary">수정하기</a>
+    <a href="/app/" class="btn btn-secondary">목록으로</a>
+</div>
+{% endblock %}

@@ -27,21 +27,30 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env("SECRET_KEY", default="django-insecure-2o=o5#_qo(+_6s0@999(@x8w0jb)##okys7n4-v@6q#=!a5)h$")
+SECRET_KEY = env(
+    "SECRET_KEY",
+    default="django-insecure-2o=o5#_qo(+_6s0@999(@x8w0jb)##okys7n4-v@6q#=!a5)h$",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG", default=True)
 
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[
-    "localhost",
-    "127.0.0.1",
-    "169.254.129.2",
-    "django-app-fwgwd5amhygnhmg6.canadacentral-01.azurewebsites.net",
-])
+ALLOWED_HOSTS = env.list(
+    "ALLOWED_HOSTS",
+    default=[
+        "localhost",
+        "127.0.0.1",
+        "169.254.129.2",
+        "django-app-fwgwd5amhygnhmg6.canadacentral-01.azurewebsites.net",
+    ],
+)
 
-CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[
-    "https://django-app-fwgwd5amhygnhmg6.canadacentral-01.azurewebsites.net",
-])
+CSRF_TRUSTED_ORIGINS = env.list(
+    "CSRF_TRUSTED_ORIGINS",
+    default=[
+        "https://django-app-fwgwd5amhygnhmg6.canadacentral-01.azurewebsites.net",
+    ],
+)
 
 
 # Application definition
@@ -58,6 +67,7 @@ INSTALLED_APPS = [
     "django_bootstrap5",
     "corsheaders",
     # custom apps
+    "app",
     "accounts",
     "ai_playground",
     "artwork",
@@ -100,6 +110,15 @@ WSGI_APPLICATION = "team6.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# local sqlite3 database
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
+
+# Azure PostgreSQL database
 DATABASES = {
     "default": {
         "ENGINE": env("DATABASE_ENGINE"),
@@ -143,9 +162,12 @@ USE_I18N = True
 USE_TZ = True
 
 
-CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[
-    "https://django-app-fwgwd5amhygnhmg6.canadacentral-01.azurewebsites.net",
-])
+CORS_ALLOWED_ORIGINS = env.list(
+    "CORS_ALLOWED_ORIGINS",
+    default=[
+        "https://django-app-fwgwd5amhygnhmg6.canadacentral-01.azurewebsites.net",
+    ],
+)
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
@@ -184,3 +206,24 @@ AZURE_CONTAINER = env("CONTAINER_NAME")
 AZURE_URL_EXPIRATION_SECS = 3600  # URL expiration time in seconds
 
 MEDIA_URL = f"https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER}/"
+
+# Redirect to home URL after login (Default redirects to /accounts/profile/)
+LOGIN_REDIRECT_URL = "/app/"
+LOGOUT_REDIRECT_URL = "/app/"
+
+# LOGGING = {
+#     "version": 1,
+#     "disable_existing_loggers": False,
+#     "handlers": {
+#         "console": {
+#             "level": "DEBUG",
+#             "class": "logging.StreamHandler",
+#         },
+#     },
+#     "loggers": {
+#         "django.db.backends": {
+#             "handlers": ["console"],
+#             "level": "DEBUG",
+#         },
+#     },
+# }
