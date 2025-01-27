@@ -51,8 +51,8 @@ CSRF_TRUSTED_ORIGINS = env.list(
     "CSRF_TRUSTED_ORIGINS",
     default=[
         "https://django-app-fwgwd5amhygnhmg6.canadacentral-01.azurewebsites.net",
-        "http://inspiraition-f2gzbvg5a3cef7ep.eastus-01.azurewebsites.net/",
-        "http://inspiraition.net/",
+        "https://inspiraition-f2gzbvg5a3cef7ep.eastus-01.azurewebsites.net",
+        "https://inspiraition.net",
     ],
 )
 
@@ -170,8 +170,8 @@ CORS_ALLOWED_ORIGINS = env.list(
     "CORS_ALLOWED_ORIGINS",
     default=[
         "https://django-app-fwgwd5amhygnhmg6.canadacentral-01.azurewebsites.net",
-        "http://inspiraition-f2gzbvg5a3cef7ep.eastus-01.azurewebsites.net/",
-        "http://inspiraition.net/",
+        "https://inspiraition-f2gzbvg5a3cef7ep.eastus-01.azurewebsites.net",
+        "https://inspiraition.net",
     ],
 )
 
