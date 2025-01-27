@@ -42,8 +42,8 @@ ALLOWED_HOSTS = env.list(
         "127.0.0.1",
         "169.254.129.2",
         "django-app-fwgwd5amhygnhmg6.canadacentral-01.azurewebsites.net",
-        "inspiraition-f2gzbvg5a3cef7ep.eastus-01.azurewebsites.net"
-        "inspiraition.net"
+        "inspiraition-f2gzbvg5a3cef7ep.eastus-01.azurewebsites.net",
+        "inspiraition.net",
     ],
 )
 
