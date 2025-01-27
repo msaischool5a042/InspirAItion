@@ -15,7 +15,12 @@
 
     <p>
     {% if user.is_authenticated %}
-        logged by {{ user }}
+        <!-- logged by {{ user }} -->
+         {% if user.profile %}
+            {{ user.profile.nickname }}님 환영합니다
+        {% else %}
+            {{ user.username }}님 환영합니다
+        {% endif %}
         <form method="post" action="{% url 'logout' %}">
             {% csrf_token %}
             <button type="submit">로그아웃</button>

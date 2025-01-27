@@ -208,6 +208,7 @@ AZURE_URL_EXPIRATION_SECS = 3600  # URL expiration time in seconds
 MEDIA_URL = f"https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER}/"
 
 # Redirect to home URL after login (Default redirects to /accounts/profile/)
+LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = "/app/"
 LOGOUT_REDIRECT_URL = "/app/"
 
