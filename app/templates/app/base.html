@@ -17,17 +17,24 @@
     <h1>Django Test</h1>
 
     <p>
-        {% if user.is_authenticated %}
-        <!-- logged by {{ user }} -->
+    {% if user.is_authenticated %}
+    <div class="d-flex align-items-center">
+        {% if user.profile.profile_image %}
+            <img src="{{ user.profile.profile_image }}" alt="프로필 이미지"
+                class="rounded-circle me=2" style="width: 40px; height: 40px; object-fit: cover;">
+        {% endif %}
         {% if user.profile %}
-        {{ user.profile.nickname }}님 환영합니다
+            {{ user.profile.nickname }}님 환영합니다
         {% else %}
         {{ user.username }}님 환영합니다
         {% endif %}
-    <form method="post" action="{% url 'logout' %}">
-        {% csrf_token %}
-        <button type="submit">로그아웃</button>
-    </form>
+        <a href="{% url 'profile_update' %}" class="btn btn-sm btn-outline-secondary ms-2">프로필 수정</a>
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit">로그아웃</button>
+        </form>
+    </div>
+
     {% else %}
     <a href="{% url 'login' %}">로그인</a>
     {% endif %}

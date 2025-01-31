@@ -10,5 +10,5 @@ urlpatterns = [
         name="login",
     ),
     path("logout/", auth_views.LogoutView.as_view(next_page="/app/"), name="logout"),
-    # 다른 URL 패턴들...
+    path('profile/update/', views.profile_update, name='profile_update')
 ]
