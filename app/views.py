@@ -82,3 +82,11 @@ def edit_post(request: HttpRequest, pk: int) -> HttpResponse:
     else:
         form = PostForm(instance=post)
     return render(request, "app/edit_post.html", {"form": form, "post": post})
+
+@login_required
+def delete_post(request: HttpRequest, pk: int) -> HttpResponse:
+    post = get_object_or_404(Post, pk=pk)
+    if request.method == "POST":
+        post.delete()
+        return redirect("/app/")
+    return render(request, "app/post_detail.html", {"post": post})
