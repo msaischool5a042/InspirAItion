@@ -24,6 +24,7 @@ urlpatterns = [
     path("", include("app.urls")),
     path("app/", include("app.urls")),
     path("accounts/", include("accounts.urls")),
+    path("ai/", include("ai_playground.urls"))
 ]
 
 if settings.DEBUG:
