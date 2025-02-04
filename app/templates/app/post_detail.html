@@ -10,13 +10,13 @@
         {% endif %}
     </div>
     <div class="mt-3">
-        <a href="/app/{{ post.id }}/edit" class="btn btn-primary">수정하기</a>
+        <a href="{% url 'edit_post' post.id %}" class="btn btn-primary">수정하기</a>
         
         <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
             삭제하기
         </button>
         
-        <a href="/app/" class="btn btn-secondary">목록으로</a>
+        <a href="{% url 'index' %}" class="btn btn-secondary">목록으로</a>
     </div>
 
     <div class="modal fade" id="deleteModal" tabindex="-1">
