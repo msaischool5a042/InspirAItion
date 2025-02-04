@@ -5,13 +5,24 @@
     <h1>Post List</h1>
     {% for post in posts %}
         <div>
-            {# TODO: url reverse 기능을 쓰도록 수정 필요 #}
-            <a href="/app/{{ post.id }}/">
+            <a href="{% url 'post_detail' post.id %}">
                 {{ post.id }}. {{ post.title }}
             </a>
         </div>
     {% endfor %}
+
+    {% if ai_images %}
+        <h2>Recent AI Generated Images</h2>
+        {% for image in ai_images %}
+            <div class="mb-3">
+                <img src="{{ image.image_url }}" alt="AI Generated Image" class="img-fluid" style="max-width: 300px">
+                <p>{{ image.prompt }}</p>
+            </div>
+            {% endfor %}
+        {% endif %}
+
     <hr>
-    <a href="/app/new/">새 글 작성하기</a>
+    <a href="{% url 'create_post' %}" class="btn btn-primary">새 글 작성하기</a>
+    <a href="{% url 'generate_ai_image' %}" class="btn btn-success">AI 이미지 생성하기</a>
     </div>
 {% endblock %}
