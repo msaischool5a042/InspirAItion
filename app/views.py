@@ -7,6 +7,8 @@ from azure.storage.blob import BlobServiceClient
 from django.conf import settings
 from openai import AzureOpenAI
 import requests
+import uuid
+from datetime import datetime
 
 from .forms import PostWithAIForm, PostEditForm
 from .models import Post, AIGeneration
@@ -86,14 +88,17 @@ def generate_prompt_with_gpt4o(user_input):
         logging.error(f"GPT-4o 호출 중 예외 발생: {str(e)}", exc_info=True)
         return None
     
-def save_image_to_blob(image_url, prompt):
+def save_image_to_blob(image_url, prompt, user_id):
     """이미지를 Azure Blob Storage에 저장"""
     try:
         response = requests.get(image_url, stream=True)
         response.raise_for_status()
 
-        sanitised_filename = re.sub(r'[<>:"/\\|?*]', '', prompt[:30]).strip()
-        filename = f"{sanitised_filename}.png"
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        unique_id = str(uuid.uuid4())[:8]
+
+        sanitised_prompt = re.sub(r'[<>:"/\\|?*]', '', prompt[:20]).strip()
+        filename = f"user_{user_id}_{timestamp}_{unique_id}_{sanitised_prompt}.png"
 
         blob_service_client = BlobServiceClient.from_connection_string(settings.AZURE_CONNECTION_STRING)
         blob_client = blob_service_client.get_blob_client(
@@ -149,7 +154,7 @@ def generate_image(request):
         if not image_url:
             return JsonResponse({"error": "이미지 생성에 실패했습니다."}, status=500)
 
-        blob_url = save_image_to_blob(image_url, generated_prompt)
+        blob_url = save_image_to_blob(image_url, generated_prompt, request.user.id)
 
         if not blob_url:
             return JsonResponse({"error": "이미지 저장에 실패했습니다."}, status=500)

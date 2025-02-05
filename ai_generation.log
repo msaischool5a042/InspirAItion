@@ -65,3 +65,102 @@ Response headers:
     'Date': 'Wed, 05 Feb 2025 01:43:08 GMT'
 2025-02-05 10:43:09,051 [INFO] 이미지가 Blob Storage에 저장되었습니다: Van Gogh-style painting of a.png
 2025-02-05 10:44:10,587 [WARNING] Method Not Allowed: /app/ai/generate/
+2025-02-05 11:03:14,206 [INFO] GPT-4o를 사용해 프롬프트를 생성합니다...
+2025-02-05 11:03:15,979 [INFO] HTTP Request: POST https://team6-openai.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-08-01-preview "HTTP/1.1 400 model_error"
+2025-02-05 11:03:15,983 [ERROR] GPT-4o 호출 중 예외 발생: Error code: 400 - {'error': {'message': "The response was filtered due to the prompt triggering Azure OpenAI's content management policy. Please modify your prompt and retry. To learn more about our content filtering policies please read our documentation: https://go.microsoft.com/fwlink/?linkid=2198766", 'type': None, 'param': 'prompt', 'code': 'content_filter', 'status': 400, 'innererror': {'code': 'ResponsibleAIPolicyViolation', 'content_filter_result': {'hate': {'filtered': False, 'severity': 'safe'}, 'jailbreak': {'filtered': False, 'detected': False}, 'self_harm': {'filtered': False, 'severity': 'safe'}, 'sexual': {'filtered': True, 'severity': 'medium'}, 'violence': {'filtered': False, 'severity': 'safe'}}}}}
+Traceback (most recent call last):
+  File "/Users/kimsumin/Documents/MS AI School/최종 프로젝트/0127/InspirAItion/app/views.py", line 42, in generate_prompt_with_gpt4o
+    response = GPT_CLIENT.chat.completions.create(
+  File "/opt/anaconda3/envs/inspirAItion/lib/python3.10/site-packages/openai/_utils/_utils.py", line 279, in wrapper
+    return func(*args, **kwargs)
+  File "/opt/anaconda3/envs/inspirAItion/lib/python3.10/site-packages/openai/resources/chat/completions.py", line 863, in create
+    return self._post(
+  File "/opt/anaconda3/envs/inspirAItion/lib/python3.10/site-packages/openai/_base_client.py", line 1283, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+  File "/opt/anaconda3/envs/inspirAItion/lib/python3.10/site-packages/openai/_base_client.py", line 960, in request
+    return self._request(
+  File "/opt/anaconda3/envs/inspirAItion/lib/python3.10/site-packages/openai/_base_client.py", line 1064, in _request
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'error': {'message': "The response was filtered due to the prompt triggering Azure OpenAI's content management policy. Please modify your prompt and retry. To learn more about our content filtering policies please read our documentation: https://go.microsoft.com/fwlink/?linkid=2198766", 'type': None, 'param': 'prompt', 'code': 'content_filter', 'status': 400, 'innererror': {'code': 'ResponsibleAIPolicyViolation', 'content_filter_result': {'hate': {'filtered': False, 'severity': 'safe'}, 'jailbreak': {'filtered': False, 'detected': False}, 'self_harm': {'filtered': False, 'severity': 'safe'}, 'sexual': {'filtered': True, 'severity': 'medium'}, 'violence': {'filtered': False, 'severity': 'safe'}}}}}
+2025-02-05 11:03:15,993 [ERROR] Internal Server Error: /app/ai/generate/
+2025-02-05 11:03:24,292 [INFO] GPT-4o를 사용해 프롬프트를 생성합니다...
+2025-02-05 11:03:26,063 [INFO] HTTP Request: POST https://team6-openai.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-08-01-preview "HTTP/1.1 200 OK"
+2025-02-05 11:03:26,073 [INFO] 생성된 프롬프트: "Van Gogh-style painting of a cow in a serene meadow. The cow is standing amidst vibrant green grass, with swirling patterns in the sky and landscape, characteristic of Van Gogh's brushstrokes. The background features soft hills and a warm sunset, with bold and textured strokes creating a dynamic and lively scene. Rich tones of blue, green, and yellow dominate the palette, with warm orange highlights from the setting sun."
+2025-02-05 11:03:26,074 [INFO] DALL-E를 사용해 이미지를 생성합니다...
+2025-02-05 11:03:38,458 [INFO] HTTP Request: POST https://team6-openai.openai.azure.com/openai/deployments/dall-e-3/images/generations?api-version=2024-02-01 "HTTP/1.1 200 OK"
+2025-02-05 11:03:38,460 [INFO] DALL-E 호출 성공! 생성된 이미지 URL: https://dalleproduse.blob.core.windows.net/private/images/33baa57b-2d4c-498a-a172-b68994f4bf2a/generated_00.png?se=2025-02-06T02%3A03%3A38Z&sig=aPP4r9qKy08hZgORBKnBX12B0lfOmT5AcZL6DU7gkVA%3D&ske=2025-02-10T12%3A41%3A43Z&skoid=09ba021e-c417-441c-b203-c81e5dcd7b7f&sks=b&skt=2025-02-03T12%3A41%3A43Z&sktid=33e01921-4d64-4f8c-a055-5bdaffd5e33d&skv=2020-10-02&sp=r&spr=https&sr=b&sv=2020-10-02
+2025-02-05 11:03:38,460 [ERROR] 이미지 생성 중 오류 발생: 'User' object has no attribute 'user'
+Traceback (most recent call last):
+  File "/Users/kimsumin/Documents/MS AI School/최종 프로젝트/0127/InspirAItion/app/views.py", line 157, in generate_image
+    blob_url = save_image_to_blob(image_url, generated_prompt, request.user.user.id)
+  File "/opt/anaconda3/envs/inspirAItion/lib/python3.10/site-packages/django/utils/functional.py", line 253, in inner
+    return func(_wrapped, *args)
+AttributeError: 'User' object has no attribute 'user'
+2025-02-05 11:03:38,464 [ERROR] Internal Server Error: /app/ai/generate/
+2025-02-05 11:04:04,740 [INFO] /Users/kimsumin/Documents/MS AI School/최종 프로젝트/0127/InspirAItion/app/views.py changed, reloading.
+2025-02-05 11:04:12,137 [INFO] GPT-4o를 사용해 프롬프트를 생성합니다...
+2025-02-05 11:04:14,694 [INFO] HTTP Request: POST https://team6-openai.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-08-01-preview "HTTP/1.1 200 OK"
+2025-02-05 11:04:14,705 [INFO] 생성된 프롬프트: "Van Gogh-style painting of a cow in a vibrant meadow. The cow is depicted with bold, swirling brushstrokes, showcasing dynamic textures and vivid colors. The background features a starry sky with a hint of golden light, reminiscent of Van Gogh's signature style. Composition focuses on the cow in the foreground, surrounded by lush grass and wildflowers. Warm and rich color palette, with dynamic lighting creating a sense of movement and life."
+2025-02-05 11:04:14,706 [INFO] DALL-E를 사용해 이미지를 생성합니다...
+2025-02-05 11:04:26,968 [INFO] HTTP Request: POST https://team6-openai.openai.azure.com/openai/deployments/dall-e-3/images/generations?api-version=2024-02-01 "HTTP/1.1 200 OK"
+2025-02-05 11:04:26,969 [INFO] DALL-E 호출 성공! 생성된 이미지 URL: https://dalleproduse.blob.core.windows.net/private/images/5aaad58b-02c7-4d0b-908c-23deac193338/generated_00.png?se=2025-02-06T02%3A04%3A26Z&sig=1cZO0Z3rHXxI4rXPxV%2BKFeNRSf3ODDmXn0Cym9x7SB0%3D&ske=2025-02-11T14%3A09%3A20Z&skoid=09ba021e-c417-441c-b203-c81e5dcd7b7f&sks=b&skt=2025-02-04T14%3A09%3A20Z&sktid=33e01921-4d64-4f8c-a055-5bdaffd5e33d&skv=2020-10-02&sp=r&spr=https&sr=b&sv=2020-10-02
+2025-02-05 11:04:39,823 [INFO] Request URL: 'https://team6blobstorage.blob.core.windows.net/uploads/user_6_20250205_110429_48b73131_Van%20Gogh-style%20pain.png'
+Request method: 'PUT'
+Request headers:
+    'Content-Length': '3163260'
+    'x-ms-blob-type': 'REDACTED'
+    'x-ms-version': 'REDACTED'
+    'Content-Type': 'application/octet-stream'
+    'Accept': 'application/xml'
+    'User-Agent': 'azsdk-python-storage-blob/12.24.0 Python/3.10.14 (macOS-15.1.1-arm64-i386-64bit)'
+    'x-ms-date': 'REDACTED'
+    'x-ms-client-request-id': '8ec494ec-e365-11ef-9880-3e7672f56e62'
+    'Authorization': 'REDACTED'
+A body is sent with the request
+2025-02-05 11:04:42,235 [INFO] Response status: 201
+Response headers:
+    'Content-Length': '0'
+    'Content-MD5': 'REDACTED'
+    'Last-Modified': 'Wed, 05 Feb 2025 02:04:42 GMT'
+    'ETag': '"0x8DD45897458CA84"'
+    'Server': 'Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0'
+    'x-ms-request-id': '757eac2f-901e-0085-6e72-770542000000'
+    'x-ms-client-request-id': '8ec494ec-e365-11ef-9880-3e7672f56e62'
+    'x-ms-version': 'REDACTED'
+    'x-ms-content-crc64': 'REDACTED'
+    'x-ms-request-server-encrypted': 'REDACTED'
+    'Date': 'Wed, 05 Feb 2025 02:04:41 GMT'
+2025-02-05 11:04:42,236 [INFO] 이미지가 Blob Storage에 저장되었습니다: user_6_20250205_110429_48b73131_Van Gogh-style pain.png
+2025-02-05 11:27:18,793 [INFO] GPT-4o를 사용해 프롬프트를 생성합니다...
+2025-02-05 11:27:20,526 [INFO] HTTP Request: POST https://team6-openai.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-08-01-preview "HTTP/1.1 200 OK"
+2025-02-05 11:27:20,527 [INFO] 생성된 프롬프트: "Impressionist-style painting of sunflowers, inspired by Monet. Soft brushstrokes with vibrant yellow petals and green leaves. A serene and natural composition with a subtle background of a garden in pastel tones. Warm and diffused lighting, evoking a peaceful, sunny atmosphere."
+2025-02-05 11:27:20,527 [INFO] DALL-E를 사용해 이미지를 생성합니다...
+2025-02-05 11:27:31,367 [INFO] HTTP Request: POST https://team6-openai.openai.azure.com/openai/deployments/dall-e-3/images/generations?api-version=2024-02-01 "HTTP/1.1 200 OK"
+2025-02-05 11:27:31,368 [INFO] DALL-E 호출 성공! 생성된 이미지 URL: https://dalleproduse.blob.core.windows.net/private/images/a3cbb0f2-69a2-4137-98d1-a64df2a544e0/generated_00.png?se=2025-02-06T02%3A27%3A31Z&sig=dESrOI0YLmxf%2F4UPhr3mJLsdRgzVaOAP2NW4hbPQgeo%3D&ske=2025-02-11T14%3A09%3A20Z&skoid=09ba021e-c417-441c-b203-c81e5dcd7b7f&sks=b&skt=2025-02-04T14%3A09%3A20Z&sktid=33e01921-4d64-4f8c-a055-5bdaffd5e33d&skv=2020-10-02&sp=r&spr=https&sr=b&sv=2020-10-02
+2025-02-05 11:27:34,362 [INFO] Request URL: 'https://team6blobstorage.blob.core.windows.net/uploads/user_6_20250205_112732_8e10bbb3_Impressionist-style.png'
+Request method: 'PUT'
+Request headers:
+    'Content-Length': '3163260'
+    'x-ms-blob-type': 'REDACTED'
+    'x-ms-version': 'REDACTED'
+    'Content-Type': 'application/octet-stream'
+    'Accept': 'application/xml'
+    'User-Agent': 'azsdk-python-storage-blob/12.24.0 Python/3.10.14 (macOS-15.1.1-arm64-i386-64bit)'
+    'x-ms-date': 'REDACTED'
+    'x-ms-client-request-id': 'c20eafa6-e368-11ef-9880-3e7672f56e62'
+    'Authorization': 'REDACTED'
+A body is sent with the request
+2025-02-05 11:27:36,687 [INFO] Response status: 201
+Response headers:
+    'Content-Length': '0'
+    'Content-MD5': 'REDACTED'
+    'Last-Modified': 'Wed, 05 Feb 2025 02:27:36 GMT'
+    'ETag': '"0x8DD458CA79609F9"'
+    'Server': 'Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0'
+    'x-ms-request-id': '353cef07-001e-0008-0d75-7749e4000000'
+    'x-ms-client-request-id': 'c20eafa6-e368-11ef-9880-3e7672f56e62'
+    'x-ms-version': 'REDACTED'
+    'x-ms-content-crc64': 'REDACTED'
+    'x-ms-request-server-encrypted': 'REDACTED'
+    'Date': 'Wed, 05 Feb 2025 02:27:35 GMT'
+2025-02-05 11:27:36,688 [INFO] 이미지가 Blob Storage에 저장되었습니다: user_6_20250205_112732_8e10bbb3_Impressionist-style.png
