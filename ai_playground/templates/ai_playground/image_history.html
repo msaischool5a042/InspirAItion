@@ -1,0 +1,20 @@
+{% extends "app/base.html" %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+<div class="container">
+    <h2>생성 히스토리</h2>
+    {% for image in images %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">{{ image.created_at|date:"Y-m-d H:i" }}</h5>
+            <p>원본 프롬프트: {{ image.prompt }}</p>
+            <p>생성된 프롬프트: {{ image.generated_prompt }}</p>
+            <img src="{{ image.image_url }}" alt="Generated Image" class="img-fluid">
+        </div>
+    </div>
+    {% empty %}
+    <p>생성된 이미지가 없습니다.</p>
+    {% endfor %}
+</div>
+{% endblock %}
