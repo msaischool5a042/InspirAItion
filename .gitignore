@@ -16,4 +16,4 @@ venv
 ai_playground/images
 
 # OSX Files
-.DS_Store
+.DS_Store*.log
