@@ -31,3 +31,37 @@ Response headers:
     'x-ms-request-server-encrypted': 'REDACTED'
     'Date': 'Wed, 05 Feb 2025 01:03:32 GMT'
 2025-02-05 10:03:32,638 [INFO] 이미지가 Blob Storage에 저장되었습니다: Van Gogh-style painting of a.png
+2025-02-05 10:42:50,454 [INFO] GPT-4o를 사용해 프롬프트를 생성합니다...
+2025-02-05 10:42:52,384 [INFO] HTTP Request: POST https://team6-openai.openai.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-08-01-preview "HTTP/1.1 200 OK"
+2025-02-05 10:42:52,390 [INFO] 생성된 프롬프트: "Van Gogh-style painting of a clock. The clock is depicted with swirling, textured brushstrokes in vibrant and dynamic colors, reminiscent of Van Gogh's post-impressionist style. The background features a dreamy, starry sky with abstract patterns and flowing lines. Warm hues of yellow, orange, and blue dominate the palette, with soft, glowing lighting."
+2025-02-05 10:42:52,391 [INFO] DALL-E를 사용해 이미지를 생성합니다...
+2025-02-05 10:43:03,866 [INFO] HTTP Request: POST https://team6-openai.openai.azure.com/openai/deployments/dall-e-3/images/generations?api-version=2024-02-01 "HTTP/1.1 200 OK"
+2025-02-05 10:43:03,868 [INFO] DALL-E 호출 성공! 생성된 이미지 URL: https://dalleproduse.blob.core.windows.net/private/images/4dfb408c-6b05-4fd1-be30-afbf0ff0b618/generated_00.png?se=2025-02-06T01%3A43%3A03Z&sig=%2F7XDwyC46Z7kjf8DPYsHnmdRmFPwoQwBpSy9qMhaEwY%3D&ske=2025-02-11T14%3A09%3A20Z&skoid=09ba021e-c417-441c-b203-c81e5dcd7b7f&sks=b&skt=2025-02-04T14%3A09%3A20Z&sktid=33e01921-4d64-4f8c-a055-5bdaffd5e33d&skv=2020-10-02&sp=r&spr=https&sr=b&sv=2020-10-02
+2025-02-05 10:43:06,751 [INFO] Request URL: 'https://team6blobstorage.blob.core.windows.net/uploads/Van%20Gogh-style%20painting%20of%20a.png'
+Request method: 'PUT'
+Request headers:
+    'Content-Length': '3163260'
+    'x-ms-blob-type': 'REDACTED'
+    'x-ms-version': 'REDACTED'
+    'Content-Type': 'application/octet-stream'
+    'Accept': 'application/xml'
+    'User-Agent': 'azsdk-python-storage-blob/12.24.0 Python/3.10.14 (macOS-15.1.1-arm64-i386-64bit)'
+    'x-ms-date': 'REDACTED'
+    'x-ms-client-request-id': '8c098530-e362-11ef-88b6-3e7672f56e62'
+    'Authorization': 'REDACTED'
+A body is sent with the request
+2025-02-05 10:43:09,051 [INFO] Response status: 201
+Response headers:
+    'Content-Length': '0'
+    'Content-MD5': 'REDACTED'
+    'Last-Modified': 'Wed, 05 Feb 2025 01:43:08 GMT'
+    'ETag': '"0x8DD4586718BC829"'
+    'Server': 'Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0'
+    'x-ms-request-id': 'bb730ecb-201e-009c-526f-77292a000000'
+    'x-ms-client-request-id': '8c098530-e362-11ef-88b6-3e7672f56e62'
+    'x-ms-version': 'REDACTED'
+    'x-ms-content-crc64': 'REDACTED'
+    'x-ms-request-server-encrypted': 'REDACTED'
+    'Date': 'Wed, 05 Feb 2025 01:43:08 GMT'
+2025-02-05 10:43:09,051 [INFO] 이미지가 Blob Storage에 저장되었습니다: Van Gogh-style painting of a.png
+2025-02-05 10:44:10,587 [WARNING] Method Not Allowed: /app/ai/generate/

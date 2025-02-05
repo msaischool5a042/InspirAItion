@@ -8,7 +8,7 @@ from django.conf import settings
 from openai import AzureOpenAI
 import requests
 
-from .forms import PostForm
+from .forms import PostWithAIForm, PostEditForm
 from .models import Post, AIGeneration
 
 logging.basicConfig(
@@ -133,13 +133,15 @@ def generate_image_with_dalle(prompt):
 @login_required
 def generate_image(request):
     """이미지 생성 뷰"""
-    if request.method == "POST":
-        user_input = request.POST.get("prompt", "").strip()
+    if request.method != "POST":
+        return JsonResponse({"error": "POST method required"}, status=405)
+    
+    prompt = request.POST.get("prompt", "").strip()
+    if not prompt:
+        return JsonResponse({"error": "프롬프트를 입력해주세요."}, status=400)
 
-        if not user_input:
-            return JsonResponse({"error": "프롬프트를 입력해주세요."}, status=400)
-
-        generated_prompt = generate_prompt_with_gpt4o(user_input)
+    try:
+        generated_prompt = generate_prompt_with_gpt4o(prompt)
         if not generated_prompt:
             return JsonResponse({"error": "프롬프트 생성에 실패했습니다."}, status=500)
         
@@ -154,7 +156,7 @@ def generate_image(request):
 
         AIGeneration.objects.create(
             user=request.user,
-            prompt=user_input,
+            prompt=prompt,
             generated_prompt=generated_prompt,
             image_url=blob_url
         )
@@ -164,8 +166,10 @@ def generate_image(request):
             "generated_prompt": generated_prompt
         })
     
-    return render(request, "app/generate_image.html")
-    
+    except Exception as e:
+        logging.error(f"이미지 생성 중 오류 발생: {str(e)}", exc_info=True)
+        return JsonResponse({"error": str(e)}, status=500)
+
 @login_required
 def index(request: HttpRequest) -> HttpResponse:
     posts = Post.objects.filter(user=request.user).order_by('-date_posted')
@@ -184,54 +188,34 @@ def post_detail(request: HttpRequest, pk: int) -> HttpResponse:
 @login_required
 def create_post(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
-        form = PostForm(request.POST, request.FILES)
+        form = PostWithAIForm(request.POST)
         if form.is_valid():
             post = form.save(commit=False)
             post.user = request.user
-            if request.FILES.get("image"):
-                file = request.FILES["image"]
-                file_name = f"{file.name}"
-                blob_service_client = BlobServiceClient.from_connection_string(
-                    settings.AZURE_CONNECTION_STRING
-                )
-                container_name = settings.CONTAINER_NAME
-                blob_client = blob_service_client.get_blob_client(
-                    container=container_name, blob=file_name
-                )
-                blob_client.upload_blob(file, overwrite=True)
-                post.image = blob_client.url
+
+            generated_image_url = request.POST.get('generated_image_url')
+            if generated_image_url:
+                post.image = generated_image_url
+
             post.save()
-            form.save_m2m()  # Save many-to-many relationships
+            form.save_m2m()
             return redirect("index")
     else:
-        form = PostForm()
+        form = PostWithAIForm()
     return render(request, "app/create_post.html", {"form": form})
 
 
 @login_required
 def edit_post(request: HttpRequest, pk: int) -> HttpResponse:
+    """게시물 수정 (이미지 수정 불가)"""
     post = get_object_or_404(Post, pk=pk)
     if request.method == "POST":
-        form = PostForm(request.POST, request.FILES, instance=post)
+        form = PostEditForm(request.POST, instance=post)
         if form.is_valid():
-            post = form.save(commit=False)
-            if request.FILES.get("image"):
-                file = request.FILES["image"]
-                file_name = f"{file.name}"
-                blob_service_client = BlobServiceClient.from_connection_string(
-                    settings.AZURE_CONNECTION_STRING
-                )
-                container_name = settings.CONTAINER_NAME
-                blob_client = blob_service_client.get_blob_client(
-                    container=container_name, blob=file_name
-                )
-                blob_client.upload_blob(file, overwrite=True)
-                post.image = blob_client.url
-            post.save()
-            form.save_m2m()
+            post = form.save()
             return redirect("post_detail", pk=pk)
     else:
-        form = PostForm(instance=post)
+        form = PostEditForm(instance=post)
     return render(request, "app/edit_post.html", {"form": form, "post": post})
 
 
