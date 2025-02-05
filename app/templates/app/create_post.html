@@ -9,6 +9,9 @@
     <div id="imagePreview" style="display: none;">
         <img id="generatedImage" src="" alt="">
         <input type="hidden" name="generated_image_url" id="generatedImageUrl">
+        <div class="mt-2">
+            <button type="button" class="btn btn-secondary" onclick="cancelImage()">취소</button>
+        </div>
     </div>
 
     <button type="button" onclick="generateImage()">이미지 생성</button>
@@ -16,6 +19,16 @@
 </form>
 
 <script>
+    function cancelImage() {
+        const imagePreview = document.getElementById('imagePreview');
+        const generatedImage = document.getElementById('generatedImage');
+        const generatedImageUrl = document.getElementById('generatedImageUrl');
+
+        generatedImage.src = '';
+        generatedImageUrl.value = '';
+        imagePreview.style.display = 'none';
+    }
+    
     async function generateImage() {
     const promptInput = document.querySelector('[name="prompt"]');
     const csrfToken = document.querySelector('[name="csrfmiddlewaretoken"]').value;

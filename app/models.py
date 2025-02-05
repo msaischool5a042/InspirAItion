@@ -12,7 +12,7 @@ class Post(models.Model):
     content = models.TextField()
     date_posted = models.DateTimeField(auto_now_add=True)
     tag_set = models.ManyToManyField("Tag", blank=True)
-    image = models.URLField(blank=True, null=True)
+    image = models.URLField(blank=True, null=True, max_length=1000)
 
     def __str__(self):
         return self.title
