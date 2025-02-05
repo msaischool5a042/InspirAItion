@@ -1,12 +1,24 @@
+import re
+import logging
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from azure.storage.blob import BlobServiceClient
 from django.conf import settings
 from openai import AzureOpenAI
+import requests
 
 from .forms import PostForm
 from .models import Post, AIGeneration
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[
+        logging.FileHandler('ai_generation.log'),
+        logging.StreamHandler()
+    ]
+)
 
 GPT_CLIENT = AzureOpenAI(
     azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
@@ -20,6 +32,140 @@ DALLE_CLIENT = AzureOpenAI(
     api_version=settings.AZURE_DALLE_API_VERSION
 )
 
+def generate_prompt_with_gpt4o(user_input):
+    """GPT-4o를 사용해 DALL-E 3 프롬프트 생성"""
+    try:
+        logging.info("GPT-4o를 사용해 프롬프트를 생성합니다...")
+
+        response = GPT_CLIENT.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {
+                    "role": "system",
+                    "content": """You are an expert in converting user's natural language descriptions into DALL-E image generation prompts.
+                    Please generate prompts according to the following guidelines:
+
+                    ## Main Guidelines
+                    1. Carefully analyse the user's description to identify key elements.
+                    2. Use clear and specific language to write the prompt.
+                    3. Include details such as the main subject, style, composition, colour, and lighting.
+                    4. Appropriately utilise artistic references or cultural elements.
+                    5. Add instructions about image quality or resolution if necessary.
+                    6. Evaluate content policy violations and notify if blocked.
+                    7. Always provide the prompt in English.
+
+                    ## Prompt Structure
+                    - Specify the main subject first, then add details.
+                    - Use adjectives and adverbs for mood and style.
+                    - Specify composition or perspective if needed.
+
+                    ## Precautions
+                    - No copyrighted characters or brands
+                    - No violent or inappropriate content
+                    - Avoid complex or ambiguous descriptions
+                    - No words related to violence, adult content, gore, politics, or drugs
+                    - No names or real people
+                    - No specific body parts
+
+                    ## Format Example:
+                    "[Style/mood] image of [main subject]. [Detailed description]. [Composition]. [Colour/lighting]."
+                    """
+                },
+                {"role": "user", "content": user_input}
+            ],
+            temperature=0.7
+        )
+
+        if response.choices and len(response.choices) > 0:
+            generated_prompt = response.choices[0].message.content.strip()
+            logging.info(f"생성된 프롬프트: {generated_prompt}")
+            return generated_prompt
+        return None
+    
+    except Exception as e:
+        logging.error(f"GPT-4o 호출 중 예외 발생: {str(e)}", exc_info=True)
+        return None
+    
+def save_image_to_blob(image_url, prompt):
+    """이미지를 Azure Blob Storage에 저장"""
+    try:
+        response = requests.get(image_url, stream=True)
+        response.raise_for_status()
+
+        sanitised_filename = re.sub(r'[<>:"/\\|?*]', '', prompt[:30]).strip()
+        filename = f"{sanitised_filename}.png"
+
+        blob_service_client = BlobServiceClient.from_connection_string(settings.AZURE_CONNECTION_STRING)
+        blob_client = blob_service_client.get_blob_client(
+            container=settings.CONTAINER_NAME,
+            blob=filename
+        )
+
+        blob_client.upload_blob(response.content, overwrite=True)
+        logging.info(f"이미지가 Blob Storage에 저장되었습니다: {filename}")
+        return blob_client.url
+    
+    except Exception as e:
+        logging.error(f"Blob Storage 저장 중 오류 발생: {str(e)}", exc_info=True)
+        return None
+
+def generate_image_with_dalle(prompt):
+    """DALL-E를 사용해 이미지를 생성"""
+    try:
+        logging.info("DALL-E를 사용해 이미지를 생성합니다...")
+
+        result = DALLE_CLIENT.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            n=1
+        )
+
+        if result and result.data:
+            image_url = result.data[0].url
+            logging.info(f"DALL-E 호출 성공! 생성된 이미지 URL: {image_url}")
+            return image_url
+        return None
+    
+    except Exception as e:
+        logging.error(f"DALL-E 호출 중 예외 발생: {str(e)}", exc_info=True)
+        return None
+    
+@login_required
+def generate_image(request):
+    """이미지 생성 뷰"""
+    if request.method == "POST":
+        user_input = request.POST.get("prompt", "").strip()
+
+        if not user_input:
+            return JsonResponse({"error": "프롬프트를 입력해주세요."}, status=400)
+
+        generated_prompt = generate_prompt_with_gpt4o(user_input)
+        if not generated_prompt:
+            return JsonResponse({"error": "프롬프트 생성에 실패했습니다."}, status=500)
+        
+        image_url = generate_image_with_dalle(generated_prompt)
+        if not image_url:
+            return JsonResponse({"error": "이미지 생성에 실패했습니다."}, status=500)
+
+        blob_url = save_image_to_blob(image_url, generated_prompt)
+
+        if not blob_url:
+            return JsonResponse({"error": "이미지 저장에 실패했습니다."}, status=500)
+
+        AIGeneration.objects.create(
+            user=request.user,
+            prompt=user_input,
+            generated_prompt=generated_prompt,
+            image_url=blob_url
+        )
+
+        return JsonResponse({
+            "image_url": blob_url,
+            "generated_prompt": generated_prompt
+        })
+    
+    return render(request, "app/generate_image.html")
+    
 @login_required
 def index(request: HttpRequest) -> HttpResponse:
     posts = Post.objects.filter(user=request.user).order_by('-date_posted')
@@ -96,48 +242,3 @@ def delete_post(request: HttpRequest, pk: int) -> HttpResponse:
         post.delete()
         return redirect("index")
     return render(request, "app/post_detail.html", {"post": post})
-
-
-@login_required
-def generate_ai_image(request):
-    context = {}
-    if request.method == "POST":
-        prompt = request.POST.get("prompt", "").strip()
-        if prompt:
-            try:
-                response = GPT_CLIENT.chat.completions.create(
-                    model="gpt-4o",
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": "Create a detailed, creative visual prompt for DALL-E."
-                        },
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=0.7
-                )
-                
-                generated_prompt = response.choices[0].message.content.strip()
-                
-                result = DALLE_CLIENT.images.generate(
-                    model="dall-e-3",
-                    prompt=generated_prompt,
-                    n=1
-                )
-                
-                image_url = result.data[0].url
-                
-                AIGeneration.objects.create(
-                    user=request.user,
-                    prompt=prompt,
-                    generated_prompt=generated_prompt,
-                    image_url=image_url
-                )
-                
-                context['image_url'] = image_url
-                context['generated_prompt'] = generated_prompt
-                
-            except Exception as e:
-                context['error'] = str(e)
-    
-    return render(request, "app/generate_image.html", context)

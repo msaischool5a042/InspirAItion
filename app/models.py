@@ -28,13 +28,6 @@ class Comment(models.Model):
         return self.message
 
 
-class Tag(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-
-    def __str__(self):
-        return self.name
-
-
 class AIGeneration(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     prompt = models.TextField()
@@ -47,3 +40,12 @@ class AIGeneration(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        verbose_name = 'AI 생성 이미지'
+        verbose_name_plural = 'AI 생성 이미지들'
+
+
+class Tag(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
