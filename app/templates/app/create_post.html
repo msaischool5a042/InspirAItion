@@ -2,10 +2,53 @@
 {% load django_bootstrap5 %}
 
 {% block content %}
-<h2>새 글 작성</h2>
-<form method="post" enctype="multipart/form-data">
+<form method="post" id="postForm">
     {% csrf_token %}
     {% bootstrap_form form %}
-    <button type="submit" class="btn btn-primary">저장</button>
+
+    <div id="imagePreview" style="display: none;">
+        <img id="generatedImage" src="" alt="">
+        <input type="hidden" name="generated_image_url" id="generatedImageUrl">
+    </div>
+
+    <button type="button" onclick="generateImage()">이미지 생성</button>
+    <button type="submit">저장</button>
 </form>
+
+<script>
+    async function generateImage() {
+    const promptInput = document.querySelector('[name="prompt"]');
+    const csrfToken = document.querySelector('[name="csrfmiddlewaretoken"]').value;
+
+    if (!promptInput || !promptInput.value.trim()) {
+        alert('프롬프트를 입력해주세요.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/app/ai/generate/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken
+            },
+            body: `prompt=${encodeURIComponent(promptInput.value)}`
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || '이미지 생성에 실패했습니다.');
+        }
+
+        const data = await response.json();
+        document.getElementById('generatedImage').src = data.image_url;
+        document.getElementById('generatedImageUrl').value = data.image_url;
+        document.getElementById('imagePreview').style.display = 'block';
+
+    } catch (error) {
+        alert(error.message);
+        console.error('Error:', error);
+    }
+}
+</script>
 {% endblock %}
