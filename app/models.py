@@ -1,6 +1,9 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
+from azure.storage.blob import BlobServiceClient
+import logging
+from urllib.parse import urlparse
 
 
 class Post(models.Model):
@@ -13,6 +16,26 @@ class Post(models.Model):
 
     def __str__(self):
         return self.title
+    
+    def delete(self, *args, **kwargs):
+        if self.image:
+            try:
+                blob_service_client = BlobServiceClient.from_connection_string(
+                    settings.AZURE_CONNECTION_STRING
+                )
+                container_client = blob_service_client.get_container_client(
+                    settings.CONTAINER_NAME
+                )
+
+                blob_name = urlparse(self.image).path.split('/')[-1]
+
+                container_client.delete_blob(blob_name)
+                logging.info(f"Blob {blob_name} deleted successfully")
+            
+            except Exception as e:
+                logging.error(f"Error deleting blob: {str(e)}")
+
+        super().delete(*args, **kwargs)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
