@@ -12,8 +12,9 @@ venv
 /.idea/dataSources.xml
 /.idea/watcherTasks.xml
 
-# AI-Generated Images
+# AI-Generated Images and logs
 ai_playground/images
+**/*.log
 
 # OSX Files
 .DS_Store
