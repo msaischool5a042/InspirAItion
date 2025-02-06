@@ -235,3 +235,20 @@ def delete_post(request: HttpRequest, pk: int) -> HttpResponse:
         post.delete()
         return redirect("index")
     return render(request, "app/post_detail.html", {"post": post})
+
+@login_required
+def my_gallery(request):
+    """사용자의 개인 갤러리"""
+    posts = Post.objects.filter(user=request.user).order_by('-date_posted')
+    return render(request, "app/gallery.html", {
+        "posts": posts,
+        "gallery_type": "personal"
+    })
+
+def public_gallery(request):
+    """공개 갤러리"""
+    posts = Post.objects.filter(is_public=True).order_by('-date_posted')
+    return render(request, "app/gallery.html", {
+        "posts": posts,
+        "gallery_type": "public"
+    })
