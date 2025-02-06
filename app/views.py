@@ -169,10 +169,10 @@ def generate_image(request):
 
 @login_required
 def index(request: HttpRequest) -> HttpResponse:
-    posts = Post.objects.filter(user=request.user).order_by('-date_posted')
-    ai_images = AIGeneration.objects.filter(user=request.user).order_by('-created_at')[:5]
+    ai_images = None
+    if request.user.is_authenticated:
+        ai_images = AIGeneration.objects.filter(user=request.user).order_by('-created_at')[:1]
     return render(request, "app/index.html", {
-        "posts": posts,
         "ai_images": ai_images
     })
 
