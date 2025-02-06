@@ -239,16 +239,30 @@ def delete_post(request: HttpRequest, pk: int) -> HttpResponse:
 @login_required
 def my_gallery(request):
     """사용자의 개인 갤러리"""
-    posts = Post.objects.filter(user=request.user).order_by('-date_posted')
+    search_query = request.GET.get('search', '')
+    posts = Post.objects.filter(user=request.user)
+
+    if search_query:
+        posts = posts.filter(title__icontains=search_query)
+    
+    posts = posts.order_by('-date_posted')
     return render(request, "app/gallery.html", {
         "posts": posts,
-        "gallery_type": "personal"
+        "gallery_type": "personal",
+        "search_query": search_query
     })
 
 def public_gallery(request):
     """공개 갤러리"""
-    posts = Post.objects.filter(is_public=True).order_by('-date_posted')
+    search_query = request.GET.get('search', '')
+    posts = Post.objects.filter(is_public=True)
+
+    if search_query:
+        posts = posts.filter(title__icontains=search_query)
+
+    posts = posts.order_by('date_posted')
     return render(request, "app/gallery.html", {
         "posts": posts,
-        "gallery_type": "public"
+        "gallery_type": "public",
+        "search_query": search_query
     })

@@ -15,9 +15,9 @@ class PostWithAIForm(forms.ModelForm):
 
     class Meta:
         model = Post
-        fields = ["title", "content", "tag_set", "is_public"]
+        fields = ["title", "content", "is_public"]
 
 class PostEditForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ["title", "content", "tag_set"]
+        fields = ["title", "content"]
