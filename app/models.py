@@ -13,6 +13,7 @@ class Post(models.Model):
     date_posted = models.DateTimeField(auto_now_add=True)
     tag_set = models.ManyToManyField("Tag", blank=True)
     image = models.URLField(blank=True, null=True, max_length=1000)
+    generated_prompt = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.title

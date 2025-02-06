@@ -153,6 +153,10 @@ def generate_image(request):
         image_url = generate_image_with_dalle(generated_prompt)
         if not image_url:
             return JsonResponse({"error": "이미지 생성에 실패했습니다."}, status=500)
+        
+        blob_url = save_image_to_blob(image_url, generated_prompt, request.user.id)
+        if not blob_url:
+            return JsonResponse({"error": "이미지 저장에 실패했습니다."}, status=500)
 
         return JsonResponse({
             "image_url": image_url,
@@ -187,6 +191,7 @@ def create_post(request: HttpRequest) -> HttpResponse:
             post.user = request.user
 
             generated_image_url = request.POST.get('generated_image_url')
+            generated_prompt = request.POST.get('generated_prompt')
             if generated_image_url:
                 blob_url = save_image_to_blob(generated_image_url, form.cleaned_data['prompt'], request.user.id)
                 if blob_url:
@@ -195,9 +200,11 @@ def create_post(request: HttpRequest) -> HttpResponse:
                     AIGeneration.objects.create(
                         user=request.user,
                         prompt=form.cleaned_data['prompt'],
-                        generated_prompt="",
+                        generated_prompt=generated_prompt,
                         image_url=blob_url
                     )
+            if generated_prompt:
+                post.generated_prompt = generated_prompt
 
             post.save()
             form.save_m2m()
