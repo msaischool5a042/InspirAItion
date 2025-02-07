@@ -17,5 +17,4 @@ ai_playground/images
 **/*.log
 
 # OSX Files
-.DS_Store*.log
 .DS_Store
