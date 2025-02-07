@@ -174,6 +174,9 @@ def index(request: HttpRequest) -> HttpResponse:
     ai_images = None
     if request.user.is_authenticated:
         ai_images = AIGeneration.objects.filter(user=request.user).order_by('-created_at')[:1]
+    ai_images = None
+    if request.user.is_authenticated:
+        ai_images = AIGeneration.objects.filter(user=request.user).order_by('-created_at')[:1]
     return render(request, "app/index.html", {
         "ai_images": ai_images
     })
@@ -248,6 +251,13 @@ def my_gallery(request):
         posts = posts.filter(title__icontains=search_query)
     
     posts = posts.order_by('-date_posted')
+    search_query = request.GET.get('search', '')
+    posts = Post.objects.filter(user=request.user)
+
+    if search_query:
+        posts = posts.filter(title__icontains=search_query)
+    
+    posts = posts.order_by('-date_posted')
     return render(request, "app/gallery.html", {
         "posts": posts,
         "gallery_type": "personal",
@@ -256,6 +266,13 @@ def my_gallery(request):
 
 def public_gallery(request):
     """공개 갤러리"""
+    search_query = request.GET.get('search', '')
+    posts = Post.objects.filter(is_public=True)
+
+    if search_query:
+        posts = posts.filter(title__icontains=search_query)
+
+    posts = posts.order_by('date_posted')
     search_query = request.GET.get('search', '')
     posts = Post.objects.filter(is_public=True)
 
