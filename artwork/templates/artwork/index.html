@@ -1,17 +1,28 @@
 <!-- artwork/templates/artwork/artwork_list.html -->
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Artwork List</title>
+    <!-- Bootstrap CSS 링크 추가 (필요 시) -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body>
     <h1>Artwork List</h1>
     <ul>
         {% for artwork in artworks %}
-            <li>{{ artwork.title }}</li>
+        <li>{{ artwork.title }}</li>
         {% endfor %}
     </ul>
+    <!-- Bootstrap JS 및 jQuery (필요 시) -->
+    <!-- <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script> -->
+    <!-- <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script> -->
+    <!-- 기본 JS 파일 링크 -->
+    <script src="{% static 'js/scripts.js' %}"></script>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 </body>
+
 </html>
