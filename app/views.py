@@ -3,15 +3,17 @@ import logging
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
+from django.views.decorators.http import require_http_methods
 from azure.storage.blob import BlobServiceClient
 from django.conf import settings
 from openai import AzureOpenAI
 import requests
 import uuid
+import json
 from datetime import datetime
 
 from .forms import PostWithAIForm, PostEditForm
-from .models import Post, AIGeneration
+from .models import Post, AIGeneration, Comment
 
 logging.basicConfig(
     level=logging.INFO,
@@ -169,10 +171,10 @@ def generate_image(request):
 
 @login_required
 def index(request: HttpRequest) -> HttpResponse:
-    posts = Post.objects.filter(user=request.user).order_by('-date_posted')
-    ai_images = AIGeneration.objects.filter(user=request.user).order_by('-created_at')[:5]
+    ai_images = None
+    if request.user.is_authenticated:
+        ai_images = AIGeneration.objects.filter(user=request.user).order_by('-created_at')[:1]
     return render(request, "app/index.html", {
-        "posts": posts,
         "ai_images": ai_images
     })
 
@@ -239,16 +241,107 @@ def delete_post(request: HttpRequest, pk: int) -> HttpResponse:
 @login_required
 def my_gallery(request):
     """사용자의 개인 갤러리"""
-    posts = Post.objects.filter(user=request.user).order_by('-date_posted')
+    search_query = request.GET.get('search', '')
+    posts = Post.objects.filter(user=request.user)
+
+    if search_query:
+        posts = posts.filter(title__icontains=search_query)
+    
+    posts = posts.order_by('-date_posted')
     return render(request, "app/gallery.html", {
         "posts": posts,
-        "gallery_type": "personal"
+        "gallery_type": "personal",
+        "search_query": search_query
     })
 
 def public_gallery(request):
     """공개 갤러리"""
-    posts = Post.objects.filter(is_public=True).order_by('-date_posted')
+    search_query = request.GET.get('search', '')
+    posts = Post.objects.filter(is_public=True)
+
+    if search_query:
+        posts = posts.filter(title__icontains=search_query)
+
+    posts = posts.order_by('date_posted')
     return render(request, "app/gallery.html", {
         "posts": posts,
-        "gallery_type": "public"
+        "gallery_type": "public",
+        "search_query": search_query
     })
+
+@require_http_methods(["GET", "POST"])
+def comment_list_create(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+
+    if request.method == "GET":
+        comments = Comment.objects.filter(post=post).select_related('author')
+        data = [{
+            'id': comment.id,
+            'message': comment.message,
+            'author': comment.author.username if comment.author else 'Anonymous',
+            'create_at': comment.created_at.isoformat(),
+        } for comment in comments]
+        return JsonResponse({'comments': data})
+    
+    elif request.method == "POST":
+        if not request.user.is_authenticated:
+            return JsonResponse({'error': '로그인이 필요합니다.'}, status=401)
+        
+        try:
+            data = json.loads(request.body)
+            message = data.get('message', '').strip()
+
+            if not message:
+                return JsonResponse({'error': '댓글 내용을 입력해주세요.'}, status=400)
+
+            comment = Comment.objects.create(
+                post=post,
+                author=request.user,
+                message=message
+            )
+
+            return JsonResponse({
+                'id': comment.id,
+                'message': comment.message,
+                'author': comment.author.username,
+                'created_at': comment.created_at.isoformat(),
+            }, status=201)
+        
+        except json.JSONDecodeError:
+            return JsonResponse({'error': '잘못된 요청입니다.'}, status=400)
+
+@require_http_methods(["DELETE", "PATCH"])
+def comment_detail(request, pk):
+    comment = get_object_or_404(Comment, id=pk)
+
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': '로그인이 필요합니다.'}, status=401)
+
+    if comment.author != request.user:
+        return JsonResponse({'error': '권한이 없습니다.'}, status=403)
+
+    if request.method == "DELETE":
+        comment.delete()
+        return JsonResponse({'message': '댓글이 삭제되었습니다.'})
+    
+    elif request.method == "PATCH":
+        try:
+            data = json.loads(request.body)
+            message = data.get('message', '').strip()
+
+            if not message:
+                return JsonResponse({'error': '댓글 내용을 입력해주세요.'}, status=400)
+
+            comment.message = message
+            comment.save()
+
+            return JsonResponse({
+                'id': comment.id,
+                'message': comment.message,
+                'author': comment.author.username,
+                'created_at': comment.created_at.isoformat(),
+                'updated_at': comment.updated_at.isoformat()
+            })
+        
+        except json.JSONDecodeError:
+            return JsonResponse({'error': '잘못된 요청입니다.'}, status=400)

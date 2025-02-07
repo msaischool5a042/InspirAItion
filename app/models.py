@@ -11,7 +11,6 @@ class Post(models.Model):
     title = models.CharField(max_length=100)
     content = models.TextField()
     date_posted = models.DateTimeField(auto_now_add=True)
-    tag_set = models.ManyToManyField("Tag", blank=True)
     image = models.URLField(blank=True, null=True, max_length=1000)
     generated_prompt = models.TextField(blank=True, null=True)
     is_public = models.BooleanField(default=False)
@@ -47,10 +46,20 @@ class Post(models.Model):
 
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True)
     message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+
+    class Meta:
+        ordering = ['-created_at']
 
     def __str__(self):
-        return self.message
+        return f"Comment by {self.author} on {self.post}"
 
 
 class AIGeneration(models.Model):
@@ -69,8 +78,8 @@ class AIGeneration(models.Model):
         verbose_name_plural = 'AI 생성 이미지들'
 
 
-class Tag(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+# class Tag(models.Model):
+#     name = models.CharField(max_length=100, unique=True)
 
-    def __str__(self):
-        return self.name
+#     def __str__(self):
+#         return self.name

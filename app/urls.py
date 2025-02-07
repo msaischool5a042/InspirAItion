@@ -9,5 +9,7 @@ urlpatterns = [
     path("posts/<int:pk>/delete/", views.delete_post, name="delete_post"),
     path("ai/generate/", views.generate_image, name="generate_image"),
     path("gallery/my/", views.my_gallery, name="my_gallery"),
-    path("gallery/public/", views.public_gallery, name="public_gallery")
+    path("gallery/public/", views.public_gallery, name="public_gallery"),
+    path("posts/<int:post_id>/comments/", views.comment_list_create, name="comment_list_create"),
+    path("comments/<int:pk>/", views.comment_detail, name="comment_detail")
 ]
