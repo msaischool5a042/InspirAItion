@@ -183,7 +183,7 @@ def index(request: HttpRequest) -> HttpResponse:
 
 
 def post_detail(request: HttpRequest, pk: int) -> HttpResponse:
-    post = get_object_or_404(Post, pk=pk)
+    post = get_object_or_404(Post.objects.select_related('user__profile'), pk=pk)
     return render(request, "app/post_detail.html", {"post": post})
 
 
@@ -291,11 +291,11 @@ def comment_list_create(request, post_id):
     post = get_object_or_404(Post, id=post_id)
 
     if request.method == "GET":
-        comments = Comment.objects.filter(post=post).select_related('author')
+        comments = Comment.objects.filter(post=post).select_related('author', 'author__profile')
         data = [{
             'id': comment.id,
             'message': comment.message,
-            'author': comment.author.username if comment.author else 'Anonymous',
+            'author': comment.author_nickname if comment.author else 'Anonymous',
             'create_at': comment.created_at.isoformat(),
         } for comment in comments]
         return JsonResponse({'comments': data})

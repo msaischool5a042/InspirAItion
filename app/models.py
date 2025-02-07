@@ -43,6 +43,10 @@ class Post(models.Model):
         if self.image and not isinstance(self.image, str):
             self.image_url = self.image.url
 
+    @property
+    def author_nickname(self):
+        return self.user.profile.nickname if hasattr(self.user, 'profile') else self.user.username
+
 
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
@@ -60,6 +64,10 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"Comment by {self.author} on {self.post}"
+    
+    @property
+    def author_nickname(self):
+        return self.author.profile.nickname if hasattr(self.author, 'profile') else self.author.username
 
 
 class AIGeneration(models.Model):
