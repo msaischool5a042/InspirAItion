@@ -1,16 +1,13 @@
-<!-- team6/home.html -->
-{% extends "app/main.html" %}
-{% block title %} AI_Playground {% endblock %}
-
-{% block css %}
+<!-- Header Start -->
+{% extends "app/common/frame.html" %}
 {% load static %}
-<!-- 자식 템플릿에서 추가할 CSS (필요한 경우) -->
-<link href="{% static 'css/sidebars.css' %}" rel="stylesheet">
-{% endblock css %}
-
+{% block title %} New Home {% endblock title %}
+{% block header %}
+{% include "app/common/header.html" %}
+{% endblock header %}
+<!-- Header End -->
 
 {% block content %}
-
 <div class="container text-center mt-5 pt-5">
     <!-- Stack the columns on mobile by making one full-width and the other half-width -->
     <div class="row d-flex flex-wrap">
@@ -120,3 +117,13 @@
                 </div>
             </div>
             {% endblock content %}
+
+        </div>
+    </div>
+</div>
+
+<!-- Footer Start -->
+{% block footer %}
+{% include "app/common/footer.html" %}
+{% endblock footer %}
+<!-- Footer End -->
