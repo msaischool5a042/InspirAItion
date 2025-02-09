@@ -416,7 +416,26 @@ def ai_play(request):
 
 
 def art_gal(request):
-    return render(request, "app/artgal.html")  # html만 있고, 아직 기능 merge 전
+    """공개 갤러리"""
+    search_query = request.GET.get("search", "")
+    posts = Post.objects.filter(is_public=True)
+
+    if search_query:
+        posts = posts.filter(title__icontains=search_query)
+
+    posts = posts.order_by("date_posted")
+    search_query = request.GET.get("search", "")
+    posts = Post.objects.filter(is_public=True)
+
+    if search_query:
+        posts = posts.filter(title__icontains=search_query)
+
+    posts = posts.order_by("date_posted")
+    return render(
+        request,
+        "app/artgal.html",
+        {"posts": posts, "gallery_type": "public", "search_query": search_query},
+    )
 
 
 def index_ai(request):

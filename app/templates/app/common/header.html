@@ -1,0 +1,92 @@
+<!-- 헤더 포함 -->
+<header>
+    <!-- 네비게이션 메뉴 -->
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'home' %}" style="font-weight: bold;">InsperAItion</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            About
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'about' %}">About</a></li>
+                            <li><a class="dropdown-item" href="{% url 'about' %}">Services</a></li>
+                            <li><a class="dropdown-item" href="{% url 'about' %}">Our Team</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'ai_play' %}">AI Playground</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'art_gal' %}">Artwork</a>
+                    </li>
+
+                    <!-- 커뮤니티 드롭다운 -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Community
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'board' %}">Board</a></li>
+                            <li><a class="dropdown-item" href="#">Creative Space</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'send_email' %}" target="_blank">Contact Us</a>
+                    </li>
+                </ul>
+
+                <!-- ✅ 로그인 & 회원가입 버튼 -->
+                <div class="d-flex align-items-center text-end me-3">
+                    {% if user.is_authenticated %}
+                    <!-- 🔹 로그인된 상태 -->
+                    <div class="dropdown-custom">
+                        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="{{ user.profile.profile_image }}" alt="" width="28" height="28" class="rounded-circle me-2">
+                            <strong>{{ user.username }}</strong>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end text-small shadow">
+                            <li><a class="dropdown-item" href="#">Profile</a></li>
+                            <li><a class="dropdown-item" href="#">My Gallery</a></li>
+                            <li><a class="dropdown-item" href="#">My Community</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <form action="{% url 'logout' %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item">Sign Out</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                    {% else %}
+                    <!-- 🔹 로그아웃 상태 (로그인 & 회원가입 버튼) -->
+                    <button id="loginButton" type="button" class="btn btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#loginModal">
+                        Login
+                    </button>
+                    <button id="signupButton" type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#signupModal">
+                        Sign-up
+                    </button>
+                    {% endif %}
+                </div>
+
+                <!-- ✅ 로그인 & 회원가입 모달 -->
+                {% include "accounts/loginmodal.html" %}
+            </div>
+        </div>
+    </nav>
+</header>
+<div style="height: 56px;">
+</div>
