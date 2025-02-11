@@ -172,6 +172,7 @@ CORS_ALLOWED_ORIGINS = env.list(
         "https://django-app-fwgwd5amhygnhmg6.canadacentral-01.azurewebsites.net",
         "https://inspiraition-f2gzbvg5a3cef7ep.eastus-01.azurewebsites.net",
         "https://inspiraition.net",
+        "https://dev.inspiraition.net",
     ],
 )
 
