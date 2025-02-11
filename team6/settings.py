@@ -41,6 +41,7 @@ ALLOWED_HOSTS = [
     "inspiraition-f2gzbvg5a3cef7ep.eastus-01.azurewebsites.net",
     "inspiraition.net",
     "www.inspiraition.net",
+    "dev.inspiraition.net",
 ]
 
 CSRF_TRUSTED_ORIGINS = env.list(
@@ -49,6 +50,7 @@ CSRF_TRUSTED_ORIGINS = env.list(
         "https://inspiraition-f2gzbvg5a3cef7ep.eastus-01.azurewebsites.net",
         "https://inspiraition.net",
         "https://www.inspiraition.net",
+        "https://dev.inspiraition.net",
     ],
 )
 
@@ -73,6 +75,7 @@ INSTALLED_APPS = [
     "artwork",
     "config",
     "email_app",
+    "util",
 ]
 
 MIDDLEWARE = [
