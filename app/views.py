@@ -1,3 +1,4 @@
+import os
 import re
 import logging
 from django.contrib.auth.decorators import login_required
@@ -36,6 +37,76 @@ DALLE_CLIENT = AzureOpenAI(
     api_key=settings.AZURE_DALLE_API_KEY,
     api_version=settings.AZURE_DALLE_API_VERSION,
 )
+
+
+GPT_CLIENT_o3 = AzureOpenAI(
+    azure_endpoint=settings.AZURE_3OMINI_ENDPOINT,
+    api_key=settings.AZURE_3OMINI_API_KEY,
+    api_version=settings.AZURE_3OMINI_API_VERSION,
+)
+
+
+def generate_prompt_with_gpt3o(user_input):
+    try:
+        print("GPT-3o-mini를 사용해 프롬프트를 생성합니다...")
+
+        response = GPT_CLIENT_o3.chat.completions.create(
+            model="team6-o3-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": """You are an expert in converting user's natural language descriptions into DALL-E image generation prompts.
+            Please generate prompts according to the following guidelines:
+
+            ##Main Guidelines
+
+            1. Carefully analyze the user's description to identify key elements.
+            2. Use clear and specific language to write the prompt.
+            3. Include details such as the main subject, style, composition, color, and lighting of the image.
+            4. Appro-priately utilize artistic references or cultural elements to enrich the prompt.
+            5. Add instructions about image quality or resolution if necessary.
+            6. Evaluate if the user's request might violate DALL-E's content policy. If there's a possibility of violation, include a message in the user's original language: "This content may be blocked by DALL-E. Please try a different approach." and explain why blocked.
+            7. Always provide the prompt in English, regardless of the language used in the user's request.
+
+            ##Prompt Structure
+
+            - Specify the main subject first, then add details.
+            - Use adjectives and adverbs effectively to convey the mood and style of the image.
+            - Specify the composition or perspective of the image if needed.
+
+            ##Precautions
+
+            - Do not directly mention copyrighted characters or brands.
+            - Avoid violent or inappropriate content.
+            - Avoid overly complex or ambiguous descriptions, maintain clarity.
+            - Avoid words related to violence, adult content, gore, politics, or drugs.
+            - Do not use names of real people.
+            - Avoid directly mentioning specific body parts.
+
+            ##Using Alternative Expressions
+
+            Consider DALL-E's strict content policy and use visual synonyms with similar meanings to prohibited words. Examples:
+
+            - "shooting star" → "meteor" or "falling star"
+            - "exploding" → "bursting" or "expanding"
+
+            ##Example Prompt Format
+
+            "[Style/mood] image of [main subject]. [Detailed description]. [Composition/perspective]. [Color/lighting information]." Follow these guidelines to convert the user's description into a DALL-E-appropriate prompt. The prompt should be creative yet easy for AI to understand. If there's a possibility of content policy violation, notify the user and suggest alternatives.""",
+                },
+                {"role": "user", "content": user_input},
+            ],
+        )
+
+        if response.choices and len(response.choices) > 0:
+            return response.choices[0].message.content
+        else:
+            print("응답을 생성하지 못했습니다.")
+            return None
+
+    except Exception as e:
+        print("GPT-3o-mini 호출 중 예외 발생:", str(e))
+        return None
 
 
 def generate_prompt_with_gpt4o(user_input):
@@ -150,7 +221,8 @@ def generate_image(request):
         return JsonResponse({"error": "프롬프트를 입력해주세요."}, status=400)
 
     try:
-        generated_prompt = generate_prompt_with_gpt4o(prompt)
+        # generated_prompt = generate_prompt_with_gpt4o(prompt)
+        generated_prompt = generate_prompt_with_gpt3o(prompt)
         if not generated_prompt:
             return JsonResponse({"error": "프롬프트 생성에 실패했습니다."}, status=500)
 
@@ -172,7 +244,7 @@ def generate_image(request):
 
 
 @require_GET
-def read_caption(request: HttpRequest) -> HttpResponse:
+def read_text(request: HttpRequest) -> HttpResponse:
     caption = request.GET.get("caption", "").strip()
     if not caption:
         return JsonResponse({"error": "캡션이 제공되지 않았습니다."}, status=400)
@@ -186,7 +258,7 @@ def read_caption(request: HttpRequest) -> HttpResponse:
     except Exception as e:
         import logging
 
-        logging.error("read_caption 에러", exc_info=True)
+        logging.error("read_text 에러", exc_info=True)
         return JsonResponse({"error": str(e)}, status=500)
 
 
@@ -208,11 +280,50 @@ def index(request: HttpRequest) -> HttpResponse:
 def post_detail(request: HttpRequest, pk: int) -> HttpResponse:
     post = get_object_or_404(Post.objects.select_related("user__profile"), pk=pk)
     caption, tags = get_image_caption_and_tags(post.image)
+    curation_text = ai_curation(
+        post.title, post.generated_prompt, caption[0], ", ".join(tags)
+    )
+
     return render(
         request,
         "app/post_detail.html",
-        {"post": post, "caption": caption[0], "tags": ", ".join(tags)},
+        {
+            "post": post,
+            "caption": caption[0],
+            "tags": ", ".join(tags),
+            "curation_text": curation_text,
+        },
     )
+
+
+def ai_curation(prompt, ai_prompt, caption, tags):
+    user_input = (
+        f"Prompt: {prompt}\nAI Prompt: {ai_prompt}\nCaption: {caption}\nTags: {tags}"
+    )
+
+    try:
+        print("GPT-3o-mini를 사용해 프롬프트를 생성합니다...")
+
+        response = GPT_CLIENT_o3.chat.completions.create(
+            model="team6-o3-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "미술 작품을 평가하는 전문가로서, 관련 정보를 활용해서 미술 작품을 100자 이내로 평가해주세요.",
+                },
+                {"role": "user", "content": user_input},
+            ],
+        )
+
+        if response.choices and len(response.choices) > 0:
+            return response.choices[0].message.content
+        else:
+            print("응답을 생성하지 못했습니다.")
+            return None
+
+    except Exception as e:
+        print("GPT-3o-mini 호출 중 예외 발생:", str(e))
+        return None
 
 
 @login_required
@@ -243,7 +354,7 @@ def create_post(request: HttpRequest) -> HttpResponse:
 
             post.save()
             form.save_m2m()
-            return redirect('post_detail', pk=post.pk)
+            return redirect("post_detail", pk=post.pk)
     else:
         form = PostWithAIForm()
     return render(request, "app/create_post.html", {"form": form})
