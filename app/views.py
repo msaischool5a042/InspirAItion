@@ -280,9 +280,11 @@ def index(request: HttpRequest) -> HttpResponse:
 def post_detail(request: HttpRequest, pk: int) -> HttpResponse:
     post = get_object_or_404(Post.objects.select_related("user__profile"), pk=pk)
     caption, tags = get_image_caption_and_tags(post.image)
-    curation_text = ai_curation(
-        post.title, post.generated_prompt, caption[0], ", ".join(tags)
-    )
+    # curation_text = ai_curation(
+    #     post.title, post.generated_prompt, caption[0], ", ".join(tags)
+    # )
+
+    curation_text = generate_ai_curation(post.title, caption[0], ", ".join(tags))
 
     return render(
         request,
@@ -324,6 +326,87 @@ def ai_curation(prompt, ai_prompt, caption, tags):
     except Exception as e:
         print("GPT-3o-mini 호출 중 예외 발생:", str(e))
         return None
+
+
+def generate_ai_curation(user_prompt, captions, tags):
+    """
+    한글로 각 스타일별 큐레이션을 생성하는 함수
+
+    Args:
+        user_prompt (str): 사용자 프롬프트
+        captions (str): 이미지 설명
+        tags (str): 태그들
+
+    Returns:
+        dict: 한글 스타일명과 큐레이션을 담은 딕셔너리
+    """
+
+    combined_text = f"프롬프트: {user_prompt}\n이미지 설명: {captions}\n태그: {tags}"
+
+    # 스타일별 프롬프트 설정
+    style_prompts = {
+        "Emotional": """Explore the emotions and sentiments contained in this artwork in depth. Write lyrically, including the following elements:
+            - The main emotions and atmosphere conveyed by the work
+            - Emotional responses evoked by visual elements
+            - The special emotions given by the moment in the work
+            - Empathy and resonance that viewers can feel
+            - Lyrical characteristics and poetic expressions of the work""",
+        # "Interpretive": """Analyze the meaning and artistic techniques of the work in depth. Interpret it by including the following elements:
+        #     - The main visual elements of the work and their symbolism
+        #     - The effects of composition and color sense
+        #     - The artist's intention and message
+        #     - Artistic techniques used and their effects
+        #     - Philosophical/conceptual meaning conveyed by the work""",
+        # "Historical": """Analyze the work in depth in its historical and art historical context. Explain it by including the following elements:
+        #     - The historical background and characteristics of the era in which the work was produced
+        #     - Relationship with similar art trends or works
+        #     - Position and significance in modern art history
+        #     - Artistic/social impact of the work
+        #     - Interpretation of the work in its historical context""",
+        # "Critical": """Provide a professional and balanced critique of the work. Evaluate it by including the following elements:
+        #     - Technical completeness and artistry of the work
+        #     - Analysis of creativity and innovation
+        #     - Strengths and areas for improvement
+        #     - Artistic achievement and limitations
+        #     - Uniqueness and differentiation of the work""",
+        # "Narrative": """Unravel the work into an attractive story. Describe it by including the following elements:
+        #     - Vivid description of the scene in the work
+        #     - Relationship and story between the elements of appearance
+        #     - Flow and changes in time in the work
+        #     - Hidden drama and narrative in the scene
+        #     - Context before and after that viewers can imagine""",
+        # "Trend": """Analyze the work from the perspective of contemporary art trends. Evaluate it by including the following elements:
+        #     - Relevance to contemporary art trends
+        #     - Digital/technological innovation elements
+        #     - Meaning in the context of modern society/culture
+        #     - Contact with the latest art trends
+        #     - Implications for future art development""",
+    }
+
+    # 결과를 저장할 딕셔너리
+    curations = {}
+
+    # 각 스타일별로 큐레이션 생성
+    for style, style_prompt in style_prompts.items():
+        try:
+            response = GPT_CLIENT_o3.chat.completions.create(
+                model="team6-o3-mini",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": f"""You are an art curation expert. Provide a very detailed and professional analysis of the given work.
+                    {style_prompt} The analysis should be written in a specific and persuasive manner,
+                    and should clearly reveal the characteristics and value of the work from a professional perspective.
+                    Please write a curation in Korean based on the following information.""",
+                    },
+                    {"role": "user", "content": combined_text},
+                ],
+            )
+            curations[style] = response.choices[0].message.content
+        except Exception as e:
+            curations[style] = f"Error generating {style} curation: {str(e)}"
+
+    return curations
 
 
 @login_required
