@@ -68,6 +68,8 @@ INSTALLED_APPS = [
     # third party apps
     "django_bootstrap5",
     "corsheaders",
+    "crispy_forms",
+    "crispy_bootstrap5",
     # custom apps
     "app",
     "accounts",
@@ -256,3 +258,6 @@ EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS")
 EMAIL_HOST_USER = env("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"

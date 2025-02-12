@@ -109,11 +109,54 @@ def read_story_and_synthesize(file_path):
         story = json.load(file)
         for line in story.get("story", "").split("\n"):
             print(line, end="")
-            synthesize_text_to_speech(line, "ko-KR")
+            synthesize_text_to_speech(line, "en-US")
 
 
 # story.json 파일 경로
-story_file_path = "./util/common/story.json"
+# story_file_path = "./util/common/story.json"
 
 # story.json 파일의 내용을 읽어와서 음성 합성 실행
-read_story_and_synthesize(story_file_path)
+# read_story_and_synthesize(story_file_path)
+
+
+def synthesize_text_to_speech(text: str) -> bytes:
+    from django.conf import settings
+    import tempfile
+    import os
+
+    subscription_key = getattr(
+        settings, "AZURE_SPEECH_API_KEY", os.getenv("AZURE_SPEECH_API_KEY")
+    )
+    region = getattr(
+        settings,
+        "AZURE_SPEECH_SERVICE_REGION",
+        os.getenv("AZURE_SPEECH_SERVICE_REGION"),
+    )
+    if not subscription_key or not region:
+        raise Exception(
+            "AZURE_SPEECH_KEY와 AZURE_SPEECH_REGION 환경 변수를 설정하세요."
+        )
+    speech_config = speechsdk.SpeechConfig(subscription=subscription_key, region=region)
+
+    # Detect language based on text content
+    if any(char in text for char in "가나다라마바사아자차카타파하"):
+        speech_config.speech_synthesis_voice_name = "ko-KR-SunHiNeural"
+    else:
+        speech_config.speech_synthesis_voice_name = "en-US-JennyNeural"
+
+    # Use a temporary file to capture synthesized audio
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_file:
+        tmp_filename = tmp_file.name
+    audio_config = speechsdk.audio.AudioOutputConfig(filename=tmp_filename)
+    synthesizer = speechsdk.SpeechSynthesizer(
+        speech_config=speech_config, audio_config=audio_config
+    )
+    result = synthesizer.speak_text_async(text).get()
+    if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
+        with open(tmp_filename, "rb") as f:
+            audio_data = f.read()
+        os.remove(tmp_filename)
+        return audio_data
+    else:
+        os.remove(tmp_filename)
+        raise Exception(f"음성 합성 실패: {result.error_details}")

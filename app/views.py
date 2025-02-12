@@ -12,6 +12,10 @@ import uuid
 import json
 from datetime import datetime
 
+from util.common.azure_computer_vision import get_image_caption_and_tags
+from util.common.azure_speech import synthesize_text_to_speech
+from django.views.decorators.http import require_GET
+
 from .forms import PostWithAIForm, PostEditForm
 from .models import Post, AIGeneration, Comment
 
@@ -167,6 +171,25 @@ def generate_image(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@require_GET
+def read_caption(request: HttpRequest) -> HttpResponse:
+    caption = request.GET.get("caption", "").strip()
+    if not caption:
+        return JsonResponse({"error": "캡션이 제공되지 않았습니다."}, status=400)
+    try:
+        audio_data = synthesize_text_to_speech(caption)
+        if not audio_data:
+            raise Exception("음성 데이터를 생성하지 못했습니다.")
+        response = HttpResponse(audio_data, content_type="audio/wav")
+        response["Content-Disposition"] = 'attachment; filename="caption.wav"'
+        return response
+    except Exception as e:
+        import logging
+
+        logging.error("read_caption 에러", exc_info=True)
+        return JsonResponse({"error": str(e)}, status=500)
+
+
 @login_required
 def index(request: HttpRequest) -> HttpResponse:
     ai_images = None
@@ -184,7 +207,12 @@ def index(request: HttpRequest) -> HttpResponse:
 
 def post_detail(request: HttpRequest, pk: int) -> HttpResponse:
     post = get_object_or_404(Post.objects.select_related("user__profile"), pk=pk)
-    return render(request, "app/post_detail.html", {"post": post})
+    caption, tags = get_image_caption_and_tags(post.image)
+    return render(
+        request,
+        "app/post_detail.html",
+        {"post": post, "caption": caption[0], "tags": ", ".join(tags)},
+    )
 
 
 @login_required
@@ -400,7 +428,7 @@ def services(request):
 def our_team(request):
     return render(
         request, "app/our_team.html"
-    )  # html정리 전(main 에는 about으로 연결해둠)
+    )  # html정리 전(main 에는 about으로 연결해둠
 
 
 def board(request):
