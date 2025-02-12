@@ -235,7 +235,7 @@ def generate_image(request):
             return JsonResponse({"error": "이미지 저장에 실패했습니다."}, status=500)
 
         return JsonResponse(
-            {"image_url": image_url, "generated_prompt": generated_prompt}
+            {"image_url": blob_url, "generated_prompt": generated_prompt}
         )
 
     except Exception as e:
