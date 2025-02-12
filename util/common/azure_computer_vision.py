@@ -39,4 +39,4 @@ image_url = "https://imgnews.pstatic.net/image/011/2025/02/05/0004447162_001_202
 image_url = "https://img1.daumcdn.net/thumb/R1280x0.fjpg/?fname=http://t1.daumcdn.net/brunch/service/user/aZCw/image/eeJn2IfiJW6Jmmu4mXFVBGcNcxs.jpg"
 image_url = "https://flexible.img.hani.co.kr/flexible/normal/860/484/imgdb/original/2025/0206/20250206503901.webp"
 image_url = "https://flexible.img.hani.co.kr/flexible/normal/968/645/imgdb/original/2025/0205/20250205503135.webp"
-get_image_caption_and_tags(image_url)
+# get_image_caption_and_tags(image_url)
