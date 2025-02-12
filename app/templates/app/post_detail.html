@@ -1,4 +1,4 @@
-{% extends "app/base.html" %}
+{% extends "app/common/frame.html" %}
 {% block content %}
 <div class="container">
     <div>
@@ -39,7 +39,7 @@
             삭제하기
         </button>
 
-        <a href="{% url 'index' %}" class="btn btn-secondary">목록으로</a>
+        <a href="{% url 'home' %}" class="btn btn-secondary">목록으로</a>
     </div>
 
     <div class="modal fade" id="deleteModal" tabindex="-1">

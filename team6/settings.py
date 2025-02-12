@@ -212,8 +212,8 @@ MEDIA_URL = f"https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINE
 
 # Redirect to home URL after login (Default redirects to /accounts/profile/)
 LOGIN_URL = "/accounts/login/"
-LOGIN_REDIRECT_URL = "/app/"
-LOGOUT_REDIRECT_URL = "/app/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
 
 # LOGGING = {
 #     "version": 1,
