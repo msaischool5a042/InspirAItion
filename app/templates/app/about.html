@@ -9,43 +9,56 @@
 
 {% block content %}
 <hr class="featurette-divider">
+
+<h1 class="fw-bolder" style="display: inline-block; border-bottom: 1px solid black; padding-bottom: 8px; margin-left: 20px; margin-bottom: 20px;">
+    Services
+</h1>
+
+
 <!-- START THE FEATURETTES -->
 <div class="container marketing">
     <!-- Three columns of text below the carousel -->
     <div class="row">
         <div class="col-lg-4">
-            <svg class="bd-placeholder-img rounded-circle" width="140" height="140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder" preserveAspectRatio="xMidYMid slice" focusable="false">
-                <title>Placeholder</title>
-                <rect width="100%" height="100%" fill="var(--bs-secondary-color)" />
-            </svg>
-            <h2 class="fw-normal">Image Generation</h2>
+            <img class="bd-placeholder-img rounded-circle mb-2" width="140" height="140" src="{% static 'img/placeholder_1.jpg' %}" alt="Image Generation">
+            <h2 class="fw-bolder">Image Generation</h2>
             <p>Transform your everyday moments into the style of famous artists and express your daily emotions through art!</p>
-            <p><a class="btn btn-secondary" href="#"> Trial &raquo;</a></p>
+            <br>
+            <p class="text-end">
+                <a class="btn btn-primary me-4" href="{% url 'create_post' %}"> Trial &raquo;</a>
+            </p>            
         </div><!-- /.col-lg-4 -->
+        
         <div class="col-lg-4">
-            <svg class="bd-placeholder-img rounded-circle" width="140" height="140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder" preserveAspectRatio="xMidYMid slice" focusable="false">
-                <title>Placeholder</title>
-                <rect width="100%" height="100%" fill="var(--bs-secondary-color)" />
-            </svg>
-            <h2 class="fw-normal">Virtual Gallery Exhibition</h2>
+            <img class="bd-placeholder-img rounded-circle mb-2" width="140" height="140" src="{% static 'img/placeholder_2.jpg' %}" alt="Virtual Gallery Exhibition">
+            <h2 class="fw-bolder">Virtual Gallery Exhibition</h2>
             <p>Do you have favorite images among the ones you've created? Want to organize them by theme?
                 Host a virtual exhibition! You can be an artist too.</p>
-            <p><a class="btn btn-secondary" href="#"> view more &raquo;</a></p>
+            <br>
+            <p class="text-end">
+                <a class="btn btn-primary me-4" href="{% url 'public_gallery' %}"> view more &raquo;</a>
+            </p>
         </div><!-- /.col-lg-4 -->
+
         <div class="col-lg-4">
-            <svg class="bd-placeholder-img rounded-circle" width="140" height="140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder" preserveAspectRatio="xMidYMid slice" focusable="false">
-                <title>Placeholder</title>
-                <rect width="100%" height="100%" fill="var(--bs-secondary-color)" />
-            </svg>
-            <h2 class="fw-normal">Community Feature</h2>
+            <img class="bd-placeholder-img rounded-circle mb-2" width="140" height="140" src="{% static 'img/placeholder_3.jpg' %}" alt="Community Feature">
+            <h2 class="fw-bolder">Community Feature</h2>
             <p>Showcase and share the images you've created, and let's exchange ideas and feedback.
                 Let's build a community where creativity and empathy thrive together!</p>
-            <p><a class="btn btn-secondary" href="#"> get together &raquo;</a></p>
+            <p class="text-end">
+                <a class="btn btn-primary me-4" href="#"> get together &raquo;</a>
+            </p>
         </div><!-- /.col-lg-4 -->
+        
     </div><!-- /.row -->
 
     <hr class="featurette-divider">
 
+    <h1 class="fw-bolder" style="display: inline-block; border-bottom: 1px solid black; padding-bottom: 8px; margin-left: 20px; margin-bottom: 20px;">
+        Our Team
+    </h1>
+    
+    
     <div class="container-team">
         <div class="container-team">
             <!-- 팀원 소개 섹션 -->
