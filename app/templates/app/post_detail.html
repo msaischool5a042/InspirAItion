@@ -1,24 +1,40 @@
 {% extends "app/common/frame.html" %}
 {% block content %}
 <div class="container">
-    <div>
-        <h1>{{ post.title }}</h1>
-        <p>{{ post.content }}</p>
-        {% if post.image %}
-        <img src="{{ post.image }}" alt="{{ post.title }}" class="img-fluid">
-        <p id="captionText">{{ caption }}</p>
-        <label for="curationStyle">AI 큐레이션 스타일 선택:</label>
-        <select id="curationStyle" class="form-select">
-            <option value="easy">쉽게</option>
-            <option value="fun">재미있게</option>
-            <option value="expert">전문가</option>
-            <option value="detailed">상세하게</option>
-        </select>
-        <!-- 음성 듣기 버튼 추가 -->
-        <button id="playCaptionBtn" class="btn btn-info">음성 듣기</button>
-        <p>{{ tags }}</p>
-        {% endif %}
+    <div class="card">
+        <div class="card-body">
+            <h1 class="card-title">{{ post.title }}</h1>
+            <p class="text-muted">
+                작성자: {{ post.author_nickname }} | 
+                작성일: {{ post.date_posted|date:"Y-m-d H:i" }}
+            </p>
+            
+            <div class="mb-4">{{ post.content }}</div>
+            
+            {% if post.image %}
+            <div class="mb-3">
+                <img src="{{ post.image }}" alt="{{ post.title }}" class="img-fluid">
+                {% if caption %}
+                <p id="captionText" class="mt-2">{{ caption }}</p>
+                <button id="playCaptionBtn" class="btn btn-info btn-sm">음성으로 듣기</button>
+                {% endif %}
+                {% if tags %}
+                <p class="mt-2"><small class="text-muted">태그: {{ tags }}</small></p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if user.is_authenticated and user == post.user %}
+            <div class="mt-3">
+                <a href="{% url 'edit_post' post.id %}" class="btn btn-primary">수정</a>
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    삭제
+                </button>
+            </div>
+            {% endif %}
+        </div>
     </div>
+
     <div class="mt-4">
         <h3>댓글</h3>
         {% if user.is_authenticated %}
@@ -32,93 +48,92 @@
         {% endif %}
         <div id="commentList"></div>
     </div>
-    <div class="mt-3">
-        <a href="{% url 'edit_post' post.id %}" class="btn btn-primary">수정하기</a>
+</div>
 
-        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
-            삭제하기
-        </button>
-
-        <a href="{% url 'home' %}" class="btn btn-secondary">목록으로</a>
-    </div>
-
-    <div class="modal fade" id="deleteModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">게시글 삭제</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    정말로 이 게시글을 삭제하시겠습니까?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                    <form action="{% url 'delete_post' post.id %}" method="post" style="display: inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger">삭제</button>
-                    </form>
-                </div>
+<!-- 삭제 확인 모달 -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">게시글 삭제</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                정말로 이 게시글을 삭제하시겠습니까?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <form action="{% url 'delete_post' post.id %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">삭제</button>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    document.getElementById('playCaptionBtn')?.addEventListener('click', function () {
-        const caption = document.getElementById('captionText').innerText;
-        fetch(`/read_caption/?caption=${encodeURIComponent(caption)}`)
-            .then(response => response.blob())
-            .then(blob => {
-                const audioUrl = URL.createObjectURL(blob);
-                const audio = new Audio(audioUrl);
-                audio.play();
-            })
-            .catch(error => {
-                console.error('음성 재생 오류:', error);
-                alert('음성 재생에 실패했습니다.');
-            });
-    });
+// 댓글 기능 스크립트
+document.addEventListener('DOMContentLoaded', function() {
+    loadComments();
+});
 
-    const postId = "{{ post.id }}";
-    function loadComments() {
-        fetch(`/posts/${postId}/comments/`)
-            .then(response => response.json())
-            .then(data => {
-                const commentList = document.getElementById('commentList');
-                commentList.innerHTML = data.comments.map(comment => `
+function loadComments() {
+    fetch(`/posts/${postId}/comments/`)
+        .then(response => response.json())
+        .then(data => {
+            const commentList = document.getElementById('commentList');
+            commentList.innerHTML = data.comments.map(comment => `
                 <div class="card mb-2">
                     <div class="card-body">
                         <p class="card-text">${comment.message}</p>
-                        <small class="text-muted">작성자: ${comment.author} / ${new Date(comment.created_at).toLocaleString()}</small>
+                        <small class="text-muted">
+                            작성자: ${comment.author} | 
+                            작성일: ${new Date(comment.created_at).toLocaleString()}
+                        </small>
                     </div>
                 </div>
             `).join('');
-            });
-    }
+        });
+}
 
-    document.getElementById('commentForm')?.addEventListener('submit', function (e) {
-        e.preventDefault();
-        const message = document.getElementById('commentMessage').value;
+document.getElementById('commentForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const message = document.getElementById('commentMessage').value;
 
-        fetch(`/posts/${postId}/comments/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            },
-            body: JSON.stringify({ message })
-        })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('commentMessage').value = '';
-                loadComments();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('댓글 작성에 실패했습니다.');
-            });
+    fetch(`/posts/${postId}/comments/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ message })
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('commentMessage').value = '';
+        loadComments();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('댓글 작성에 실패했습니다.');
     });
-    loadComments();
+});
+
+// 음성 재생 기능
+document.getElementById('playCaptionBtn')?.addEventListener('click', function() {
+    const caption = document.getElementById('captionText').innerText;
+    fetch(`/read_caption/?caption=${encodeURIComponent(caption)}`)
+        .then(response => response.blob())
+        .then(blob => {
+            const audioUrl = URL.createObjectURL(blob);
+            const audio = new Audio(audioUrl);
+            audio.play();
+        })
+        .catch(error => {
+            console.error('음성 재생 오류:', error);
+            alert('음성 재생에 실패했습니다.');
+        });
+});
 </script>
 {% endblock %}

@@ -2,38 +2,43 @@
 {% load django_bootstrap5 %}
 
 {% block content %}
-<form method="post" id="postForm">
-    {% csrf_token %}
-    {% bootstrap_form form %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h2 class="mb-4">새 글 작성</h2>
+            <form method="post" id="postForm">
+                {% csrf_token %}
+                {% bootstrap_form form %}
+                
+                <div id="imagePreview" style="display: none;" class="my-3">
+                    <img id="generatedImage" src="" alt="" class="img-fluid">
+                    <input type="hidden" name="generated_image_url" id="generatedImageUrl">
+                    <input type="hidden" name="generated_prompt" id="generatedPrompt">
+                    <div class="mt-2">
+                        <button type="button" class="btn btn-secondary" onclick="cancelImage()">이미지 취소</button>
+                    </div>
+                </div>
 
-    <div id="imagePreview" style="display: none;">
-        <img id="generatedImage" src="" alt="">
-        <input type="hidden" name="generated_image_url" id="generatedImageUrl">
-        <input type="hidden" name="generated_prompt" id="generatedPrompt">
-        <div class="mt-2">
-            <button type="button" class="btn btn-secondary" onclick="cancelImage()">취소</button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-info" onclick="generateImage()">AI 이미지 생성</button>
+                    <button type="submit" class="btn btn-primary">저장</button>
+                    <a href="{% url 'home' %}" class="btn btn-secondary">취소</a>
+                </div>
+            </form>
         </div>
     </div>
-
-    <button type="button" onclick="generateImage()">이미지 생성</button>
-    <button type="submit">저장</button>
-</form>
+</div>
 
 <script>
-    function cancelImage() {
-        const imagePreview = document.getElementById('imagePreview');
-        const generatedImage = document.getElementById('generatedImage');
-        const generatedImageUrl = document.getElementById('generatedImageUrl');
+function cancelImage() {
+    document.getElementById('imagePreview').style.display = 'none';
+    document.getElementById('generatedImage').src = '';
+    document.getElementById('generatedImageUrl').value = '';
+    document.getElementById('generatedPrompt').value = '';
+}
 
-        generatedImage.src = '';
-        generatedImageUrl.value = '';
-        imagePreview.style.display = 'none';
-    }
-    
-    async function generateImage() {
+async function generateImage() {
     const promptInput = document.querySelector('[name="prompt"]');
-    const csrfToken = document.querySelector('[name="csrfmiddlewaretoken"]').value;
-
     if (!promptInput || !promptInput.value.trim()) {
         alert('프롬프트를 입력해주세요.');
         return;
@@ -44,14 +49,13 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': csrfToken
+                'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value
             },
             body: `prompt=${encodeURIComponent(promptInput.value)}`
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || '이미지 생성에 실패했습니다.');
+            throw new Error('이미지 생성에 실패했습니다.');
         }
 
         const data = await response.json();

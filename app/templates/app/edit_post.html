@@ -2,10 +2,19 @@
 {% load django_bootstrap5 %}
 
 {% block content %}
-<h2>글 수정하기</h2>
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {% bootstrap_form form %}
-    <button type="submit" class="btn btn-primary">저장</button>
-</form>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h2 class="mb-4">글 수정하기</h2>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% bootstrap_form form %}
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">저장</button>
+                    <a href="{% url 'post_detail' post.id %}" class="btn btn-secondary">취소</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}

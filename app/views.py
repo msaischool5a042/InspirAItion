@@ -202,7 +202,7 @@ def index(request: HttpRequest) -> HttpResponse:
         ai_images = AIGeneration.objects.filter(user=request.user).order_by(
             "-created_at"
         )[:1]
-    return render(request, "app/index.html", {"ai_images": ai_images})
+    return render(request, "app/home.html", {"ai_images": ai_images})
 
 
 def post_detail(request: HttpRequest, pk: int) -> HttpResponse:
@@ -243,7 +243,7 @@ def create_post(request: HttpRequest) -> HttpResponse:
 
             post.save()
             form.save_m2m()
-            return redirect("index")
+            return redirect('post_detail', pk=post.pk)
     else:
         form = PostWithAIForm()
     return render(request, "app/create_post.html", {"form": form})
@@ -268,7 +268,7 @@ def delete_post(request: HttpRequest, pk: int) -> HttpResponse:
     post = get_object_or_404(Post, pk=pk)
     if request.method == "POST":
         post.delete()
-        return redirect("index")
+        return redirect("home")
     return render(request, "app/post_detail.html", {"post": post})
 
 
