@@ -1,5 +1,14 @@
+<!-- Header Start -->
 {% extends "app/common/frame.html" %}
+{% load static %}
+{% block title %} New Home {% endblock title %}
+{% block header %}
+{% include "app/common/header.html" %}
+{% endblock header %}
+<!-- Header End -->
+
 {% block content %}
+<hr class="featurette-divider">
 <div class="container">
     <h2>{% if gallery_type == 'personal' %}내 갤러리{% else %}공개 갤러리{% endif %}</h2>
 
@@ -9,24 +18,30 @@
             <button type="submit" class="btn btn-primary">검색</button>
         </div>
     </form>
-    
+
     <div class="row">
         {% for post in posts %}
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    {% if post.image %}
-                        <img src="{{ post.image }}" class="card-img-top" alt="{{ post.title }}">
-                    {% endif %}
-                    <div class="card-body">
-                        <h5 class="card-title">{{ post.title }}</h5>
-                        <p class="card-text">{{ post.content|truncatechars:100 }}</p>
-                        <a href="{% url 'post_detail' post.id %}" class="btn btn-primary">자세히 보기</a>
-                    </div>
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                {% if post.image %}
+                <img src="{{ post.image }}" class="card-img-top" alt="{{ post.title }}">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ post.title }}</h5>
+                    <p class="card-text">{{ post.content|truncatechars:100 }}</p>
+                    <a href="{% url 'post_detail' post.id %}" class="btn btn-primary">자세히 보기</a>
                 </div>
             </div>
-            {% empty %}
-                <p>게시물이 없습니다.</p>
-            {% endfor %}
+        </div>
+        {% empty %}
+        <p>게시물이 없습니다.</p>
+        {% endfor %}
     </div>
 </div>
-{% endblock %}
+{% endblock content %}
+
+<!-- Footer Start -->
+{% block footer %}
+{% include "app/common/footer.html" %}
+{% endblock footer %}
+<!-- Footer End -->
