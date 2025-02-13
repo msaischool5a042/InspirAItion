@@ -21,9 +21,13 @@
                 <p class="mt-2"><small class="text-muted">태그: {{ tags }}</small></p>
                 {% endif %}
                 {% if curation_text %}
-                <p id="captionText" class="mt-2"><small class="text-muted">큐레이션: {{ curation_text }}</small></p>
-                <button id="playCaptionBtn" class="btn btn-info btn-sm">음성으로 듣기</button>
+                <p id="curationText" class="mt-2"><small class="text-muted">큐레이션: {{ curation_text }}</small></p>
+                {% else %}
+                <p id="curationText" class="mt-2"><small class="text-muted"></small></p>
                 {% endif %}
+                <!-- 큐레이션 생성 버튼 추가 -->
+                <button id="generateCurationBtn" class="btn btn-secondary btn-sm mt-2">큐레이션 생성</button>
+                <button id="playCaptionBtn" class="btn btn-info btn-sm">음성으로 듣기</button>
             </div>
             {% endif %}
 
@@ -123,10 +127,34 @@
             });
     });
 
-    // 음성 재생 기능
+    // 큐레이션 생성 AJAX 요청 스크립트
+    document.getElementById('generateCurationBtn')?.addEventListener('click', function () {
+        const url = `{% url 'generate_curation' post.id %}`;
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('curationText').innerHTML = `<small class="text-muted">큐레이션: ${data.curation_text}</small>`;
+            })
+            .catch(error => {
+                console.error('큐레이션 생성 오류:', error);
+                alert('큐레이션 생성에 실패했습니다.');
+            });
+    });
+
+    // 음성 재생 기능 수정: "curationText" 요소에서 텍스트 읽기
     document.getElementById('playCaptionBtn')?.addEventListener('click', function () {
-        const caption = document.getElementById('captionText').innerText.substring(0, 50);
-        fetch(`/read_text/?caption=${encodeURIComponent(caption)}`)
+        const curationElem = document.getElementById('curationText');
+        const text = curationElem.innerText.replace('큐레이션:', '').trim().substring(0, 100);
+        if (!text) {
+            alert('재생할 큐레이션 텍스트가 없습니다.');
+            return;
+        }
+        fetch(`/read_text/?caption=${encodeURIComponent(text)}`)
             .then(response => response.blob())
             .then(blob => {
                 const audioUrl = URL.createObjectURL(blob);

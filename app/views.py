@@ -277,25 +277,34 @@ def index(request: HttpRequest) -> HttpResponse:
     return render(request, "app/home.html", {"ai_images": ai_images})
 
 
+@login_required
 def post_detail(request: HttpRequest, pk: int) -> HttpResponse:
     post = get_object_or_404(Post.objects.select_related("user__profile"), pk=pk)
     caption, tags = get_image_caption_and_tags(post.image)
-    # curation_text = ai_curation(
-    #     post.title, post.generated_prompt, caption[0], ", ".join(tags)
-    # )
-
-    curation_text = generate_ai_curation(post.title, caption[0], ", ".join(tags))
-
+    # 큐레이션 텍스트는 초기에는 빈 값으로 전달
+    curation_text = ""
     return render(
         request,
         "app/post_detail.html",
         {
             "post": post,
-            "caption": caption[0],
+            "caption": caption[0] if caption else "",
             "tags": ", ".join(tags),
             "curation_text": curation_text,
         },
     )
+
+
+@login_required
+@require_http_methods(["POST"])
+def generate_curation(request, pk):
+    post = get_object_or_404(Post.objects.select_related("user__profile"), pk=pk)
+    caption, tags = get_image_caption_and_tags(post.image)
+    caption_str = caption[0] if caption else ""
+    # generate_ai_curation returns a dict; 여기서는 "Emotional" 스타일을 사용합니다.
+    curation_dict = generate_ai_curation(post.title, caption_str, ", ".join(tags))
+    curation_text = curation_dict.get("Emotional", "")
+    return JsonResponse({"curation_text": curation_text})
 
 
 def ai_curation(prompt, ai_prompt, caption, tags):
