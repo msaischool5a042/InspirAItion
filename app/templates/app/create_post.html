@@ -1,7 +1,15 @@
+<!-- Header Start -->
 {% extends "app/common/frame.html" %}
+{% load static %}
 {% load django_bootstrap5 %}
+{% block title %} New Home {% endblock title %}
+{% block header %}
+{% include "app/common/header.html" %}
+{% endblock header %}
+<!-- Header End -->
 
 {% block content %}
+<hr class="featurette-divider">
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-lg-8">
@@ -9,7 +17,7 @@
             <form method="post" id="postForm">
                 {% csrf_token %}
                 {% bootstrap_form form %}
-                
+
                 <div id="imagePreview" style="display: none;" class="my-3">
                     <img id="generatedImage" src="" alt="" class="img-fluid">
                     <input type="hidden" name="generated_image_url" id="generatedImageUrl">
@@ -30,44 +38,50 @@
 </div>
 
 <script>
-function cancelImage() {
-    document.getElementById('imagePreview').style.display = 'none';
-    document.getElementById('generatedImage').src = '';
-    document.getElementById('generatedImageUrl').value = '';
-    document.getElementById('generatedPrompt').value = '';
-}
-
-async function generateImage() {
-    const promptInput = document.querySelector('[name="prompt"]');
-    if (!promptInput || !promptInput.value.trim()) {
-        alert('프롬프트를 입력해주세요.');
-        return;
+    function cancelImage() {
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('generatedImage').src = '';
+        document.getElementById('generatedImageUrl').value = '';
+        document.getElementById('generatedPrompt').value = '';
     }
 
-    try {
-        const response = await fetch('/app/ai/generate/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value
-            },
-            body: `prompt=${encodeURIComponent(promptInput.value)}`
-        });
-
-        if (!response.ok) {
-            throw new Error('이미지 생성에 실패했습니다.');
+    async function generateImage() {
+        const promptInput = document.querySelector('[name="prompt"]');
+        if (!promptInput || !promptInput.value.trim()) {
+            alert('프롬프트를 입력해주세요.');
+            return;
         }
 
-        const data = await response.json();
-        document.getElementById('generatedImage').src = data.image_url;
-        document.getElementById('generatedImageUrl').value = data.image_url;
-        document.getElementById('generatedPrompt').value = data.generated_prompt;
-        document.getElementById('imagePreview').style.display = 'block';
+        try {
+            const response = await fetch('/app/ai/generate/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name="csrfmiddlewaretoken"]').value
+                },
+                body: `prompt=${encodeURIComponent(promptInput.value)}`
+            });
 
-    } catch (error) {
-        alert(error.message);
-        console.error('Error:', error);
+            if (!response.ok) {
+                throw new Error('이미지 생성에 실패했습니다.');
+            }
+
+            const data = await response.json();
+            document.getElementById('generatedImage').src = data.image_url;
+            document.getElementById('generatedImageUrl').value = data.image_url;
+            document.getElementById('generatedPrompt').value = data.generated_prompt;
+            document.getElementById('imagePreview').style.display = 'block';
+
+        } catch (error) {
+            alert(error.message);
+            console.error('Error:', error);
+        }
     }
-}
 </script>
-{% endblock %}
+{% endblock content %}
+
+<!-- Footer Start -->
+{% block footer %}
+{% include "app/common/footer.html" %}
+{% endblock footer %}
+<!-- Footer End -->
