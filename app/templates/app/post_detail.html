@@ -25,9 +25,24 @@
                 {% else %}
                 <p id="curationText" class="mt-2"><small class="text-muted"></small></p>
                 {% endif %}
-                <!-- 큐레이션 생성 버튼 추가 -->
+                <!-- 큐레이션 스타일 선택 추가 -->
+                <label for="curationStyleSelect" class="mt-2">큐레이션 스타일:</label>
+                <select id="curationStyleSelect" class="form-select">
+                    <option value="Emotional">Emotional</option>
+                    <option value="Interpretive">Interpretive</option>
+                    <option value="Historical">Historical</option>
+                    <option value="Critical">Critical</option>
+                    <option value="Narrative">Narrative</option>
+                    <option value="Trend">Trend</option>
+                    <option value="Money">Money</option>
+                    <option value="Praise">Praise</option>
+                    <option value="Blind">Blind</option>
+                </select>
+                <!-- 큐레이션 생성 버튼 및 음성 재생, 제어 버튼 추가 -->
                 <button id="generateCurationBtn" class="btn btn-secondary btn-sm mt-2">큐레이션 생성</button>
                 <button id="playCaptionBtn" class="btn btn-info btn-sm">음성으로 듣기</button>
+                <button id="pauseAudioBtn" class="btn btn-warning btn-sm">일시정지</button>
+                <button id="resumeAudioBtn" class="btn btn-success btn-sm">재생</button>
             </div>
             {% endif %}
 
@@ -127,14 +142,17 @@
             });
     });
 
-    // 큐레이션 생성 AJAX 요청 스크립트
+    // 큐레이션 생성 AJAX 요청 스크립트 수정: 선택된 style 전송
     document.getElementById('generateCurationBtn')?.addEventListener('click', function () {
+        const style = document.getElementById('curationStyleSelect').value;
         const url = `{% url 'generate_curation' post.id %}`;
         fetch(url, {
             method: 'POST',
             headers: {
+                'Content-Type': 'application/json',
                 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-            }
+            },
+            body: JSON.stringify({ style: style })
         })
             .then(response => response.json())
             .then(data => {
@@ -146,25 +164,52 @@
             });
     });
 
-    // 음성 재생 기능 수정: "curationText" 요소에서 텍스트 읽기
+    // 전역 오디오 객체
+    let audio = null;
+
+    // 음성 재생 기능 수정: POST 방식 및 재생 컨트롤 구현
     document.getElementById('playCaptionBtn')?.addEventListener('click', function () {
         const curationElem = document.getElementById('curationText');
-        const text = curationElem.innerText.replace('큐레이션:', '').trim().substring(0, 100);
+        let text = curationElem.innerText.replace('큐레이션:', '').trim();
         if (!text) {
             alert('재생할 큐레이션 텍스트가 없습니다.');
             return;
         }
-        fetch(`/read_text/?caption=${encodeURIComponent(text)}`)
+        fetch(`/read_text/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: JSON.stringify({ caption: text })
+        })
             .then(response => response.blob())
             .then(blob => {
+                if (audio) {
+                    audio.pause();
+                }
                 const audioUrl = URL.createObjectURL(blob);
-                const audio = new Audio(audioUrl);
+                audio = new Audio(audioUrl);
                 audio.play();
             })
             .catch(error => {
                 console.error('음성 재생 오류:', error);
                 alert('음성 재생에 실패했습니다.');
             });
+    });
+
+    // 일시정지 버튼 이벤트
+    document.getElementById('pauseAudioBtn')?.addEventListener('click', function () {
+        if (audio && !audio.paused) {
+            audio.pause();
+        }
+    });
+
+    // 재생 버튼 이벤트
+    document.getElementById('resumeAudioBtn')?.addEventListener('click', function () {
+        if (audio && audio.paused) {
+            audio.play();
+        }
     });
 </script>
 {% endblock %}

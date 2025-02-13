@@ -243,12 +243,13 @@ def generate_image(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
-@require_GET
+@require_http_methods(["POST"])
 def read_text(request: HttpRequest) -> HttpResponse:
-    caption = request.GET.get("caption", "").strip()
-    if not caption:
-        return JsonResponse({"error": "캡션이 제공되지 않았습니다."}, status=400)
     try:
+        data = json.loads(request.body)
+        caption = data.get("caption", "").strip()
+        if not caption:
+            return JsonResponse({"error": "캡션이 제공되지 않았습니다."}, status=400)
         audio_data = synthesize_text_to_speech(caption)
         if not audio_data:
             raise Exception("음성 데이터를 생성하지 못했습니다.")
@@ -256,8 +257,6 @@ def read_text(request: HttpRequest) -> HttpResponse:
         response["Content-Disposition"] = 'attachment; filename="caption.wav"'
         return response
     except Exception as e:
-        import logging
-
         logging.error("read_text 에러", exc_info=True)
         return JsonResponse({"error": str(e)}, status=500)
 
@@ -301,9 +300,18 @@ def generate_curation(request, pk):
     post = get_object_or_404(Post.objects.select_related("user__profile"), pk=pk)
     caption, tags = get_image_caption_and_tags(post.image)
     caption_str = caption[0] if caption else ""
-    # generate_ai_curation returns a dict; 여기서는 "Emotional" 스타일을 사용합니다.
-    curation_dict = generate_ai_curation(post.title, caption_str, ", ".join(tags))
-    curation_text = curation_dict.get("Emotional", "")
+    try:
+        data = json.loads(request.body)
+        selected_style = data.get("style", "Emotional")
+    except Exception:
+        selected_style = "Emotional"
+
+    # generate_ai_curation returns a dict with various style keys.
+    curation_text = generate_ai_curation(
+        selected_style, post.title, caption_str, ", ".join(tags)
+    )
+    # curation_text = curation_dict.get(selected_style, "")
+    # curation_text = "1111"
     return JsonResponse({"curation_text": curation_text})
 
 
@@ -337,7 +345,7 @@ def ai_curation(prompt, ai_prompt, caption, tags):
         return None
 
 
-def generate_ai_curation(user_prompt, captions, tags):
+def generate_ai_curation(selected_style, user_prompt, captions, tags):
     """
     한글로 각 스타일별 큐레이션을 생성하는 함수
 
@@ -360,43 +368,82 @@ def generate_ai_curation(user_prompt, captions, tags):
             - The special emotions given by the moment in the work
             - Empathy and resonance that viewers can feel
             - Lyrical characteristics and poetic expressions of the work""",
-        # "Interpretive": """Analyze the meaning and artistic techniques of the work in depth. Interpret it by including the following elements:
-        #     - The main visual elements of the work and their symbolism
-        #     - The effects of composition and color sense
-        #     - The artist's intention and message
-        #     - Artistic techniques used and their effects
-        #     - Philosophical/conceptual meaning conveyed by the work""",
-        # "Historical": """Analyze the work in depth in its historical and art historical context. Explain it by including the following elements:
-        #     - The historical background and characteristics of the era in which the work was produced
-        #     - Relationship with similar art trends or works
-        #     - Position and significance in modern art history
-        #     - Artistic/social impact of the work
-        #     - Interpretation of the work in its historical context""",
-        # "Critical": """Provide a professional and balanced critique of the work. Evaluate it by including the following elements:
-        #     - Technical completeness and artistry of the work
-        #     - Analysis of creativity and innovation
-        #     - Strengths and areas for improvement
-        #     - Artistic achievement and limitations
-        #     - Uniqueness and differentiation of the work""",
-        # "Narrative": """Unravel the work into an attractive story. Describe it by including the following elements:
-        #     - Vivid description of the scene in the work
-        #     - Relationship and story between the elements of appearance
-        #     - Flow and changes in time in the work
-        #     - Hidden drama and narrative in the scene
-        #     - Context before and after that viewers can imagine""",
-        # "Trend": """Analyze the work from the perspective of contemporary art trends. Evaluate it by including the following elements:
-        #     - Relevance to contemporary art trends
-        #     - Digital/technological innovation elements
-        #     - Meaning in the context of modern society/culture
-        #     - Contact with the latest art trends
-        #     - Implications for future art development""",
+        "Interpretive": """Analyze the meaning and artistic techniques of the work in depth. Interpret it by including the following elements:
+            - The main visual elements of the work and their symbolism
+            - The effects of composition and color sense
+            - The artist's intention and message
+            - Artistic techniques used and their effects
+            - Philosophical/conceptual meaning conveyed by the work""",
+        "Historical": """Analyze the work in depth in its historical and art historical context. Explain it by including the following elements:
+            - The historical background and characteristics of the era in which the work was produced
+            - Relationship with similar art trends or works
+            - Position and significance in modern art history
+            - Artistic/social impact of the work
+            - Interpretation of the work in its historical context""",
+        "Critical": """Provide a professional and balanced critique of the work. Evaluate it by including the following elements:
+            - Technical completeness and artistry of the work
+            - Analysis of creativity and innovation
+            - Strengths and areas for improvement
+            - Artistic achievement and limitations
+            - Uniqueness and differentiation of the work""",
+        "Narrative": """Unravel the work into an attractive story. Describe it by including the following elements:
+            - Vivid description of the scene in the work
+            - Relationship and story between the elements of appearance
+            - Flow and changes in time in the work
+            - Hidden drama and narrative in the scene
+            - Context before and after that viewers can imagine""",
+        "Trend": """Analyze the work from the perspective of contemporary art trends. Evaluate it by including the following elements:
+            - Relevance to contemporary art trends
+            - Digital/technological innovation elements
+            - Meaning in the context of modern society/culture
+            - Contact with the latest art trends
+            - Implications for future art development""",
+        "Money": """You are an art price evaluation expert with decades of experience in the art market. Provide a detailed and professional price analysis for the given artwork. Consider the following elements to determine and explain the precise price of the work:
+            - Artist's reputation and market value
+            - Size, materials, and year of creation of the artwork
+            - Rarity and condition of the piece
+            - Recent auction prices of similar works
+            - Current art market trends and demand
+            The price evaluation should be written in a specific and persuasive manner, clearly revealing the monetary value of the work from a professional perspective. Finally, present an estimated price range and explain its basis in detail. Ensure that your analysis does not exceed 800 characters.""",
+        # "Akple": """You are a notoriously scathing art critic. Provide a sharp and critical analysis of the given artwork. Consider the following elements to critique the work harshly:
+        #     - Technical proficiency and artistry of the work
+        #     - Creativity and originality (or lack thereof)
+        #     - Artist's intention and its realization
+        #     - Relevance and position in the contemporary art world
+        #     - Impact and meaning for the audience
+        #     The critique should be written in a sharp, direct, and sometimes satirical tone. Emphasize the work's weaknesses and point out overrated elements. However, provide substantiated criticism, not mere disparagement. You may include potential improvements or advice for the artist.""",
+        "Praise": """You are a passionate art advocate with a deep affection and understanding of contemporary art. Provide a positive and inspiring analysis of the given artwork. Consider the following elements to enthusiastically praise the work:
+            - Innovative aspects and originality of the piece
+            - Excellent use of color and composition
+            - The artist's vision and its superb expression
+            - Emotional and intellectual impact on the viewer
+            - Significance in the context of contemporary art history
+            The analysis should be written in an enthusiastic and persuasive tone.Emphasize the work's strengths and vividly describe its artistic value. Explain how the piece stimulates the audience's emotions and presents new perspectives. Also, mention the positive influence this work has on the art world and the inspiration it can provide to future generations. 
+            Throughout your curation, intersperse appropriate exclamations and expressions of awe to convey your genuine excitement and admiration for the artwork. Use phrases like "Wow!", "Incredible!", "Absolutely stunning!", or "What a masterpiece!" to enhance the enthusiastic tone of your analysis. Ensure that your analysis does not exceed 800 characters.""",
+        "Blind": """You are an expert in describing images for visually impaired individuals. Your goal is to provide clear, detailed, and vivid descriptions that help them mentally visualize the image.
+            #Key Elements to Include
+            - General composition and main elements of the image.
+            - Detailed descriptions of colors, shapes, and textures.
+            - Spatial relationships and arrangement of objects.
+            - Mood or emotions conveyed by the image.
+            - Important details or unique characteristics.
+            #Guidelines for Writing
+            - Use concise yet rich descriptions.
+            - Relate visual elements to tactile or auditory experiences.
+            - Specify positions using clear references (e.g., "at the top center").
+            - Describe colors using relatable comparisons (e.g., "sky blue like a clear summer day").
+            - Focus on concrete, objective details rather than abstract concepts.
+            - Provide context or purpose of the image to aid understanding.
+            #Objective
+            Enable visually impaired individuals to form a vivid mental picture of the image through your descriptive language.""",
     }
 
     # 결과를 저장할 딕셔너리
     curations = {}
 
-    # 각 스타일별로 큐레이션 생성
-    for style, style_prompt in style_prompts.items():
+    # 선택된 스타일에 해당하는 큐레이션 생성
+    style_prompt = style_prompts.get(selected_style, "")
+    if style_prompt:
         try:
             response = GPT_CLIENT_o3.chat.completions.create(
                 model="team6-o3-mini",
@@ -411,11 +458,15 @@ def generate_ai_curation(user_prompt, captions, tags):
                     {"role": "user", "content": combined_text},
                 ],
             )
-            curations[style] = response.choices[0].message.content
+            curations[selected_style] = response.choices[0].message.content
         except Exception as e:
-            curations[style] = f"Error generating {style} curation: {str(e)}"
+            curations[selected_style] = (
+                f"Error generating {selected_style} curation: {str(e)}"
+            )
+    else:
+        curations[selected_style] = "Invalid style selected."
 
-    return curations
+    return curations[selected_style]
 
 
 @login_required
