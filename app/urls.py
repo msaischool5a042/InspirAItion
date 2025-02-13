@@ -20,6 +20,11 @@ urlpatterns = [
         name="comment_list_create",
     ),
     path("comments/<int:pk>/", views.comment_detail, name="comment_detail"),
+    path(
+        "posts/<int:pk>/generate_curation/",
+        views.generate_curation,
+        name="generate_curation",
+    ),
     # 추가: read_text 뷰 URL 패턴
     path("read_text/", views.read_text, name="read_text"),
 ]
