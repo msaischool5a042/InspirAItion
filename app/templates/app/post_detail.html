@@ -49,10 +49,10 @@
                     <option value="Blind">Blind</option>
                 </select>
                 <!-- 큐레이션 생성 버튼 및 음성 재생, 제어 버튼 추가 -->
-                <button id="generateCurationBtn" class="btn btn-secondary btn-sm mt-2">큐레이션 생성</button>
+                <button id="generateCurationBtn" class="btn btn-secondary btn-sm">큐레이션 생성</button>
                 <button id="playCaptionBtn" class="btn btn-info btn-sm">음성으로 듣기</button>
-                <button id="pauseAudioBtn" class="btn btn-warning btn-sm">일시정지</button>
-                <button id="resumeAudioBtn" class="btn btn-success btn-sm">재생</button>
+                <button id="pauseAudioBtn" class="btn btn-warning btn-sm" style="display:none;">일시정지</button>
+                <button id="resumeAudioBtn" class="btn btn-success btn-sm" style="display:none;">재생</button>
             </div>
             {% endif %}
 
@@ -62,6 +62,7 @@
                 <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
                     삭제
                 </button>
+                <a href="javascript:history.back()" class="btn btn-secondary">이전</a>
             </div>
             {% endif %}
         </div>
@@ -95,7 +96,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                <form action="{% url 'delete_post' post.id %}" method="post" style="display: inline;">
+                <form id="deleteForm" action="{% url 'delete_post' post.id %}" method="post" style="display: inline;">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger">삭제</button>
                 </form>
@@ -104,8 +105,15 @@
     </div>
 </div>
 
+<!-- 로딩 모달 추가 -->
+<div id="loadingModal" style="position: fixed;top: 0;left: 0;width: 100%;height: 100%;background: rgba(0,0,0,0.5);display: none;z-index: 1050;">
+    <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);color: #fff;font-size: 1.5rem;">
+        로딩중...
+    </div>
+</div>
+
 <script>
-    // 댓글 기능 스크립트
+    // 댓글 기능 스크립트 수정: 버튼 클릭 효과 및 로딩 표시 추가
     document.addEventListener('DOMContentLoaded', function () {
         loadComments();
     });
@@ -129,8 +137,17 @@
             });
     }
 
+    // 로딩 모달 함수
+    function showLoadingModal() {
+        document.getElementById('loadingModal').style.display = 'block';
+    }
+    function hideLoadingModal() {
+        document.getElementById('loadingModal').style.display = 'none';
+    }
+
     document.getElementById('commentForm')?.addEventListener('submit', function (e) {
         e.preventDefault();
+        showLoadingModal();
         const message = document.getElementById('commentMessage').value;
 
         fetch(`/posts/${postId}/comments/`, {
@@ -149,11 +166,15 @@
             .catch(error => {
                 console.error('Error:', error);
                 alert('댓글 작성에 실패했습니다.');
+            })
+            .finally(() => {
+                hideLoadingModal();
             });
     });
 
-    // 큐레이션 생성 AJAX 요청 스크립트 수정: 선택된 style 전송
+    // 큐레이션 생성 AJAX 요청 스크립트 수정: 선택된 style 전송, 로딩 표시 및 버튼 상태 업데이트 추가
     document.getElementById('generateCurationBtn')?.addEventListener('click', function () {
+        showLoadingModal();
         const style = document.getElementById('curationStyleSelect').value;
         const url = `{% url 'generate_curation' post.id %}`;
         fetch(url, {
@@ -167,22 +188,33 @@
             .then(response => response.json())
             .then(data => {
                 document.getElementById('curationText').innerHTML = `<small class="text-muted">큐레이션: ${data.curation_text}</small>`;
+                // 음성으로 듣기 버튼 활성화 (보이도록)
+                document.getElementById('playCaptionBtn').style.display = 'inline-block';
+                // 일시정지와 재생 버튼 숨기기
+                document.getElementById('pauseAudioBtn').style.display = 'none';
+                document.getElementById('resumeAudioBtn').style.display = 'none';
             })
             .catch(error => {
                 console.error('큐레이션 생성 오류:', error);
                 alert('큐레이션 생성에 실패했습니다.');
+            })
+            .finally(() => {
+                hideLoadingModal();
             });
     });
 
     // 전역 오디오 객체
     let audio = null;
 
-    // 음성 재생 기능 수정: POST 방식 및 재생 컨트롤 구현
+    // 음성 재생 기능 수정: POST 방식 및 로딩 표시 추가
     document.getElementById('playCaptionBtn')?.addEventListener('click', function () {
+        showLoadingModal();
+        const btn = this;
         const curationElem = document.getElementById('curationText');
         let text = curationElem.innerText.replace('큐레이션:', '').trim();
         if (!text) {
             alert('재생할 큐레이션 텍스트가 없습니다.');
+            hideLoadingModal();
             return;
         }
         fetch(`/read_text/`, {
@@ -201,10 +233,17 @@
                 const audioUrl = URL.createObjectURL(blob);
                 audio = new Audio(audioUrl);
                 audio.play();
+                // 버튼 토글: play 버튼 숨기고 일시정지 버튼 보이기
+                btn.style.display = 'none';
+                document.getElementById('pauseAudioBtn').style.display = 'inline-block';
+                document.getElementById('resumeAudioBtn').style.display = 'none';
             })
             .catch(error => {
                 console.error('음성 재생 오류:', error);
                 alert('음성 재생에 실패했습니다.');
+            })
+            .finally(() => {
+                hideLoadingModal();
             });
     });
 
@@ -212,6 +251,8 @@
     document.getElementById('pauseAudioBtn')?.addEventListener('click', function () {
         if (audio && !audio.paused) {
             audio.pause();
+            this.style.display = 'none';
+            document.getElementById('resumeAudioBtn').style.display = 'inline-block';
         }
     });
 
@@ -219,6 +260,15 @@
     document.getElementById('resumeAudioBtn')?.addEventListener('click', function () {
         if (audio && audio.paused) {
             audio.play();
+            this.style.display = 'none';
+            document.getElementById('pauseAudioBtn').style.display = 'inline-block';
+        }
+    });
+
+    // 삭제 폼 제출 시 사용자 확인 추가
+    document.getElementById('deleteForm')?.addEventListener('submit', function (e) {
+        if (!confirm("정말로 게시글을 삭제하시겠습니까?")) {
+            e.preventDefault();
         }
     });
 </script>
