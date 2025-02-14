@@ -63,7 +63,7 @@ def generate_prompt_with_gpt3o(user_input):
             1. Carefully analyze the user's description to identify key elements.
             2. Use clear and specific language to write the prompt.
             3. Include details such as the main subject, style, composition, color, and lighting of the image.
-            4. Appro-priately utilize artistic references or cultural elements to enrich the prompt.
+            4. Appropriately utilize artistic references or cultural elements to enrich the prompt.
             5. Add instructions about image quality or resolution if necessary.
             6. Evaluate if the user's request might violate DALL-E's content policy. If there's a possibility of violation, include a message in the user's original language: "This content may be blocked by DALL-E. Please try a different approach." and explain why blocked.
             7. Always provide the prompt in English, regardless of the language used in the user's request.
@@ -734,3 +734,17 @@ def email_list(request):
 
 def email_detail(request, email_id):
     return render(request, "email_app/email_detail.html")
+
+def fullscreen_gallery(request):
+    """전체 화면 갤러리 뷰"""
+    posts = Post.objects.filter(is_public=True).exclude(
+        image__isnull=True
+    ).exclude(
+        image__exact=''
+    ).order_by('-date_posted')
+
+    return render(
+        request,
+        "app/fullscreen_gallery.html",
+        {"posts": posts}
+    )
