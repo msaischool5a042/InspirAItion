@@ -14,7 +14,7 @@
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <h2 class="mb-4">글 수정하기</h2>
-            <form method="post" enctype="multipart/form-data">
+            <form method="post" enctype="multipart/form-data" onsubmit="if(!confirm('내용을 수정하시겠습니까?')) return false; document.querySelector('#loadingModal div').innerText='저장중'; showLoadingModal();">
                 {% csrf_token %}
                 {% bootstrap_form form %}
                 <div class="d-flex gap-2">
@@ -26,6 +26,7 @@
     </div>
 </div>
 {% endblock content %}
+
 
 <!-- Footer Start -->
 {% block footer %}
