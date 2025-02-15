@@ -56,15 +56,15 @@
             </div>
             {% endif %}
 
-            {% if user.is_authenticated and user == post.user %}
             <div class="mt-3">
+                {% if user.is_authenticated and user == post.user %}
                 <a href="{% url 'edit_post' post.id %}" class="btn btn-primary">수정</a>
                 <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
                     삭제
                 </button>
+                {% endif %}
                 <a href="javascript:history.back()" class="btn btn-secondary">이전</a>
             </div>
-            {% endif %}
         </div>
     </div>
 
