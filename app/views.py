@@ -315,36 +315,6 @@ def generate_curation(request, pk):
     return JsonResponse({"curation_text": curation_text})
 
 
-def ai_curation(prompt, ai_prompt, caption, tags):
-    user_input = (
-        f"Prompt: {prompt}\nAI Prompt: {ai_prompt}\nCaption: {caption}\nTags: {tags}"
-    )
-
-    try:
-        print("GPT-3o-mini를 사용해 프롬프트를 생성합니다...")
-
-        response = GPT_CLIENT_o3.chat.completions.create(
-            model="team6-o3-mini",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "미술 작품을 평가하는 전문가로서, 관련 정보를 활용해서 미술 작품을 100자 이내로 평가해주세요.",
-                },
-                {"role": "user", "content": user_input},
-            ],
-        )
-
-        if response.choices and len(response.choices) > 0:
-            return response.choices[0].message.content
-        else:
-            print("응답을 생성하지 못했습니다.")
-            return None
-
-    except Exception as e:
-        print("GPT-3o-mini 호출 중 예외 발생:", str(e))
-        return None
-
-
 def generate_ai_curation(selected_style, user_prompt, captions, tags):
     """
     한글로 각 스타일별 큐레이션을 생성하는 함수
@@ -405,13 +375,6 @@ def generate_ai_curation(selected_style, user_prompt, captions, tags):
             - Recent auction prices of similar works
             - Current art market trends and demand
             The price evaluation should be written in a specific and persuasive manner, clearly revealing the monetary value of the work from a professional perspective. Finally, present an estimated price range and explain its basis in detail. Ensure that your analysis does not exceed 800 characters.""",
-        # "Akple": """You are a notoriously scathing art critic. Provide a sharp and critical analysis of the given artwork. Consider the following elements to critique the work harshly:
-        #     - Technical proficiency and artistry of the work
-        #     - Creativity and originality (or lack thereof)
-        #     - Artist's intention and its realization
-        #     - Relevance and position in the contemporary art world
-        #     - Impact and meaning for the audience
-        #     The critique should be written in a sharp, direct, and sometimes satirical tone. Emphasize the work's weaknesses and point out overrated elements. However, provide substantiated criticism, not mere disparagement. You may include potential improvements or advice for the artist.""",
         "Praise": """You are a passionate art advocate with a deep affection and understanding of contemporary art. Provide a positive and inspiring analysis of the given artwork. Consider the following elements to enthusiastically praise the work:
             - Innovative aspects and originality of the piece
             - Excellent use of color and composition
@@ -445,7 +408,7 @@ def generate_ai_curation(selected_style, user_prompt, captions, tags):
     style_prompt = style_prompts.get(selected_style, "")
     if style_prompt:
         try:
-            response = GPT_CLIENT_o3.chat.completions.create(
+            response = GPT_CLIENT.chat.completions.create(
                 model="team6-o3-mini",
                 messages=[
                     {
@@ -453,6 +416,7 @@ def generate_ai_curation(selected_style, user_prompt, captions, tags):
                         "content": f"""You are an art curation expert. Provide a very detailed and professional analysis of the given work.
                     {style_prompt} The analysis should be written in a specific and persuasive manner,
                     and should clearly reveal the characteristics and value of the work from a professional perspective.
+                    As an expert in evaluating artwork, please provide an assessment of the piece within 100 words, utilizing the provided information.
                     Please write a curation in Korean based on the following information.""",
                     },
                     {"role": "user", "content": combined_text},
@@ -735,16 +699,14 @@ def email_list(request):
 def email_detail(request, email_id):
     return render(request, "email_app/email_detail.html")
 
+
 def fullscreen_gallery(request):
     """전체 화면 갤러리 뷰"""
-    posts = Post.objects.filter(is_public=True).exclude(
-        image__isnull=True
-    ).exclude(
-        image__exact=''
-    ).order_by('-date_posted')
-
-    return render(
-        request,
-        "app/fullscreen_gallery.html",
-        {"posts": posts}
+    posts = (
+        Post.objects.filter(is_public=True)
+        .exclude(image__isnull=True)
+        .exclude(image__exact="")
+        .order_by("-date_posted")
     )
+
+    return render(request, "app/fullscreen_gallery.html", {"posts": posts})
