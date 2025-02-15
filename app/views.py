@@ -310,8 +310,6 @@ def generate_curation(request, pk):
     curation_text = generate_ai_curation(
         selected_style, post.title, caption_str, ", ".join(tags)
     )
-    # curation_text = curation_dict.get(selected_style, "")
-    # curation_text = "1111"
     return JsonResponse({"curation_text": curation_text})
 
 
@@ -408,7 +406,7 @@ def generate_ai_curation(selected_style, user_prompt, captions, tags):
     style_prompt = style_prompts.get(selected_style, "")
     if style_prompt:
         try:
-            response = GPT_CLIENT.chat.completions.create(
+            response = GPT_CLIENT_o3.chat.completions.create(
                 model="team6-o3-mini",
                 messages=[
                     {
