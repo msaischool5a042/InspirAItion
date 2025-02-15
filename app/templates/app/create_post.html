@@ -28,12 +28,19 @@
                 </div>
 
                 <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-info" onclick="generateImage()">AI 이미지 생성</button>
+                    <button type="button" id="generateImageBtn" class="btn btn-info" onclick="generateImage()">AI 이미지 생성</button>
                     <button type="submit" class="btn btn-primary">저장</button>
                     <a href="{% url 'home' %}" class="btn btn-secondary">취소</a>
                 </div>
             </form>
         </div>
+    </div>
+</div>
+
+<!-- 추가: 로딩 모달 (post_detail과 동일한 스타일) -->
+<div id="loadingModal" style="position: fixed;top: 0;left: 0;width: 100%;height: 100%;background: rgba(0,0,0,0.5);display: none;z-index: 1050;">
+    <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);color: #fff;font-size: 1.5rem;">
+        AI 이미지 생성중...
     </div>
 </div>
 
@@ -45,6 +52,14 @@
         document.getElementById('generatedPrompt').value = '';
     }
 
+    // 추가: 로딩 모달 함수 (post_detail과 동일)
+    function showLoadingModal() {
+        document.getElementById('loadingModal').style.display = 'block';
+    }
+    function hideLoadingModal() {
+        document.getElementById('loadingModal').style.display = 'none';
+    }
+
     async function generateImage() {
         const promptInput = document.querySelector('[name="prompt"]');
         if (!promptInput || !promptInput.value.trim()) {
@@ -52,6 +67,8 @@
             return;
         }
 
+        // 수정: 로딩 모달 표시 (버튼 상태 변경 대신)
+        showLoadingModal();
         try {
             const response = await fetch('/app/ai/generate/', {
                 method: 'POST',
@@ -71,12 +88,24 @@
             document.getElementById('generatedImageUrl').value = data.image_url;
             document.getElementById('generatedPrompt').value = data.generated_prompt;
             document.getElementById('imagePreview').style.display = 'block';
-
         } catch (error) {
             alert(error.message);
             console.error('Error:', error);
+        } finally {
+            hideLoadingModal();
         }
     }
+
+    // 새로 추가: form 저장 시 '저장중...' 상태 표시
+    document.addEventListener('DOMContentLoaded', function () {
+        const postForm = document.getElementById('postForm');
+        if (postForm) {
+            postForm.addEventListener('submit', function () {
+                document.querySelector('#loadingModal div').innerText = '저장중...';
+                showLoadingModal();
+            });
+        }
+    });
 </script>
 {% endblock content %}
 
