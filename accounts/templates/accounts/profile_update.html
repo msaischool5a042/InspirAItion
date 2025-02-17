@@ -1,5 +1,12 @@
+<!-- Header Start -->
 {% extends "app/common/frame.html" %}
+{% load static %}
 {% load django_bootstrap5 %}
+{% block title %} New Home {% endblock title %}
+{% block header %}
+{% include "app/common/header.html" %}
+{% endblock header %}
+<!-- Header End -->
 
 {% block content %}
 <div class="container mt-4">
@@ -9,17 +16,23 @@
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 {% bootstrap_form form %}
-                
+
                 {% if user.profile.profile_image %}
                 <div class="mb-3">
                     <p>현재 프로필 이미지:</p>
                     <img src="{{ user.profile.profile_image }}" alt="프로필 이미지" class="img-thumbnail" style="max-width: 200px">
                 </div>
                 {% endif %}
-                
+
                 <button type="submit" class="btn btn-primary">저장</button>
             </form>
         </div>
     </div>
 </div>
-{% endblock %}
+{% endblock content %}
+
+<!-- Footer Start -->
+{% block footer %}
+{% include "app/common/footer.html" %}
+{% endblock footer %}
+<!-- Footer End -->

@@ -59,7 +59,7 @@ def profile_update(request):
                     print("에러:", str(e))
 
             profile.save()
-            return redirect("index")
+            return redirect("home")
     else:
         form = ProfileUpdateForm(instance=request.user.profile)
 
