@@ -530,7 +530,11 @@ def delete_post(request: HttpRequest, pk: int) -> HttpResponse:
         if post.tags:
             update_tag_usage_on_delete(post.tags)
         post.delete()
-        return redirect("public_gallery")
+
+        if post.is_public:
+            return redirect("public_gallery")
+        else:
+            return redirect("my_gallery")
     return render(request, "app/post_detail.html", {"post": post})
 
 
