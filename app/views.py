@@ -536,16 +536,35 @@ def delete_post(request: HttpRequest, pk: int) -> HttpResponse:
 
 @login_required
 def my_gallery(request):
-    """사용자의 개인 갤러리"""
     search_query = request.GET.get("search", "")
     tag_filter = request.GET.get("tag", "")
-    posts = Post.objects.filter(user=request.user)
+    posts_qs = Post.objects.filter(user=request.user)
     if search_query:
-        posts = posts.filter(title__icontains=search_query)
-    posts = list(posts)  # queryset을 list로 변환
+        posts_qs = posts_qs.filter(title__icontains=search_query)
     if tag_filter:
-        posts = [post for post in posts if post.tags and tag_filter in post.tags]
-    posts.sort(key=lambda p: p.date_posted, reverse=True)
+        posts_qs = posts_qs.filter(tags__contains=tag_filter)
+    posts_qs = posts_qs.order_by("-date_posted")
+
+    page = int(request.GET.get("page", "1"))
+    post_cnt = 9
+    offset = (page - 1) * post_cnt
+    total_count = posts_qs.count()
+    posts = posts_qs[offset : offset + post_cnt]
+    has_more = (offset + post_cnt) < total_count
+
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        posts_data = [
+            {
+                "id": post.id,
+                "title": post.title,
+                "image": post.image,
+                "detail_url": f"/post/{post.id}/",
+                "content": post.content,
+            }
+            for post in posts
+        ]
+        return JsonResponse({"posts": posts_data, "has_more": has_more})
+
     top_tags = TagUsage.objects.order_by("-count")[:10]
     return render(
         request,
@@ -561,16 +580,40 @@ def my_gallery(request):
 
 
 def public_gallery(request):
-    """공개 갤러리"""
     search_query = request.GET.get("search", "")
     tag_filter = request.GET.get("tag", "")
-    posts = Post.objects.filter(is_public=True)
+    page = int(request.GET.get("page", "1"))
+    post_cnt = 9
+    offset = (page - 1) * post_cnt
+
+    posts_qs = Post.objects.filter(is_public=True)
     if search_query:
-        posts = posts.filter(title__icontains=search_query)
-    posts = list(posts)  # queryset을 list로 변환
+        posts_qs = posts_qs.filter(title__icontains=search_query)
+
+    total_count = posts_qs.count()
+
     if tag_filter:
-        posts = [post for post in posts if post.tags and tag_filter in post.tags]
-    posts.sort(key=lambda p: p.date_posted)
+        posts_list = list(posts_qs.filter(tags__contains=tag_filter))
+        posts = posts_list[offset : offset + post_cnt]
+        total_count = len(posts_list)
+    else:
+        posts = posts_qs.order_by("date_posted")[offset : offset + post_cnt]
+
+    has_more = (offset + post_cnt) < total_count
+
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        posts_data = [
+            {
+                "id": post.id,
+                "title": post.title,
+                "image": post.image,
+                "detail_url": f"/post/{post.id}/",
+                "content": post.content,  # 추가: 내용 필드
+            }
+            for post in posts
+        ]
+        return JsonResponse({"posts": posts_data, "has_more": has_more})
+
     top_tags = TagUsage.objects.order_by("-count")[:10]
     return render(
         request,

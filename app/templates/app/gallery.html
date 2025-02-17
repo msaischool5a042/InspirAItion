@@ -29,9 +29,9 @@
         </div>
     </form>
 
-    <div class="row">
+    <div id="posts-container" class="row">
         {% for post in posts %}
-        <div class="col-md-4 mb-4">
+        <div class="col-md-4 mb-4 post-item">
             <div class="card">
                 {% if post.image %}
                 <img src="{{ post.image }}" class="card-img-top" alt="{{ post.title }}">
@@ -43,10 +43,55 @@
                 </div>
             </div>
         </div>
-        {% empty %}
-        <p>게시물이 없습니다.</p>
         {% endfor %}
     </div>
+    <div id="load-more-container" class="d-flex justify-content-center my-4">
+        {% if posts|length >= 3 %}
+        <button id="load-more-btn" class="btn btn-primary btn-lg" onclick="loadMore()" style="padding: 12px 24px; font-weight: bold;">
+            더보기
+        </button>
+        {% endif %}
+    </div>
+    <script>
+        let page = 2;
+        function loadMore() {
+            const xhr = new XMLHttpRequest();
+            const params = new URLSearchParams(window.location.search);
+            params.set('page', page);
+            const url = window.location.pathname + '?' + params.toString();
+            xhr.open("GET", url, true);
+            xhr.setRequestHeader("x-requested-with", "XMLHttpRequest");
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    const posts = response.posts;
+                    const hasMore = response.has_more;
+                    const container = document.getElementById("posts-container");
+                    posts.forEach(function (post) {
+                        const div = document.createElement("div");
+                        div.className = "col-md-4 mb-4 post-item";
+                        div.innerHTML = `
+                            <div class="card">
+                                ${post.image ? `<img src="${post.image}" class="card-img-top" alt="${post.title}">` : ""}
+                                <div class="card-body">
+                                    <h5 class="card-title">${post.title}</h5>
+                                    <p class="card-text">${post.content.length > 100 ? post.content.substring(0, 100) + "..." : post.content}</p>
+                                    <a href="${post.detail_url}" class="btn btn-primary">자세히 보기</a>
+                                </div>
+                            </div>
+                        `;
+                        container.appendChild(div);
+                    });
+                    if (hasMore) {
+                        page++;
+                    } else {
+                        document.getElementById("load-more-btn").style.display = "none";
+                    }
+                }
+            };
+            xhr.send();
+        }
+    </script>
 </div>
 {% endblock content %}
 
