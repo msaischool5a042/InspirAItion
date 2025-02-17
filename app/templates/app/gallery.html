@@ -26,6 +26,11 @@
                 {{ tag.tag }} ({{ tag.count }})
             </a>
             {% endfor %}
+            {% if selected_tag %}
+            <a href="?{% if search_query %}search={{ search_query }}{% endif %}" class="btn btn-outline-secondary btn-sm">
+                태그 초기화
+            </a>
+            {% endif %}
         </div>
     </form>
 
