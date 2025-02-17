@@ -18,7 +18,7 @@ from util.common.azure_speech import synthesize_text_to_speech
 from django.views.decorators.http import require_GET
 
 from .forms import PostWithAIForm, PostEditForm
-from .models import Post, AIGeneration, Comment
+from .models import Post, AIGeneration, Comment, TagUsage  # TagUsage 추가
 
 logging.basicConfig(
     level=logging.INFO,
@@ -466,14 +466,42 @@ def create_post(request: HttpRequest) -> HttpResponse:
             if caption:
                 post.caption = caption[0]
             if tags:
-                post.tags = ", ".join(tags)
+                # tags를 리스트 형태로 저장
+                post.tags = tags
 
             post.save()
             form.save_m2m()
+
+            # 분석된 tags 정보를 TagUsage 업데이트
+            if tags:
+                update_tag_usage_on_create(tags)
+
             return redirect("post_detail", pk=post.pk)
     else:
         form = PostWithAIForm()
     return render(request, "app/create_post.html", {"form": form})
+
+
+def update_tag_usage_on_create(tags):
+    if not isinstance(tags, list):
+        return
+    for tag in tags:
+        tag_usage, created = TagUsage.objects.get_or_create(tag=tag)
+        tag_usage.count += 1
+        tag_usage.save()
+
+
+def update_tag_usage_on_delete(tags):
+    if not isinstance(tags, list):
+        return
+    for tag in tags:
+        try:
+            tag_usage = TagUsage.objects.get(tag=tag)
+            if tag_usage.count > 0:
+                tag_usage.count -= 1
+                tag_usage.save()
+        except TagUsage.DoesNotExist:
+            continue
 
 
 @login_required
@@ -499,7 +527,9 @@ def delete_post(request: HttpRequest, pk: int) -> HttpResponse:
     if request.method == "POST":
         previous_url = request.META.get("HTTP_REFERER", "home")
         logging.info(f"이전 화면의 주소: {previous_url}")
-        # post.delete()
+        if post.tags:
+            update_tag_usage_on_delete(post.tags)
+        post.delete()
         return redirect("public_gallery")
     return render(request, "app/post_detail.html", {"post": post})
 

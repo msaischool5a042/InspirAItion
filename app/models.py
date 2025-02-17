@@ -47,10 +47,11 @@ class Post(models.Model):
 
     @property
     def author_nickname(self):
-        try:
-            return self.user.profile.nickname
-        except Exception:
-            return self.user.username
+        return (
+            self.user.profile.nickname
+            if hasattr(self.user, "profile")
+            else self.user.username
+        )
 
 
 class Comment(models.Model):
@@ -70,10 +71,11 @@ class Comment(models.Model):
 
     @property
     def author_nickname(self):
-        try:
-            return self.author.profile.nickname
-        except Exception:
-            return self.author.username
+        return (
+            self.author.profile.nickname
+            if hasattr(self.author, "profile")
+            else self.author.username
+        )
 
 
 class AIGeneration(models.Model):
@@ -90,6 +92,14 @@ class AIGeneration(models.Model):
         ordering = ["-created_at"]
         verbose_name = "AI 생성 이미지"
         verbose_name_plural = "AI 생성 이미지들"
+
+
+class TagUsage(models.Model):
+    tag = models.CharField(max_length=100, unique=True)
+    count = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.tag} : {self.count}"
 
 
 # class Tag(models.Model):
