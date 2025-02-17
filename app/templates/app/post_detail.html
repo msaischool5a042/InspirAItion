@@ -63,7 +63,11 @@
                     삭제
                 </button>
                 {% endif %}
+                {% if "artwork" in previous_url %}
+                <button type="button" class="btn btn-secondary" onclick="history.back()">이전</button>
+                {% else %}
                 <a href="{% if post.is_public %}{% url 'public_gallery' %}{% else %}{% url 'my_gallery' %}{% endif %}" class="btn btn-secondary">목록</a>
+                {% endif %}
             </div>
         </div>
     </div>
