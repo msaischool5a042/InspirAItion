@@ -563,7 +563,7 @@ def my_gallery(request):
                 "id": post.id,
                 "title": post.title,
                 "image": post.image,
-                "detail_url": f"/post/{post.id}/",
+                "detail_url": f"/app/posts/{post.id}/",  # 변경됨: /post/ -> /app/posts/
                 "content": post.content,
             }
             for post in posts
@@ -617,7 +617,7 @@ def public_gallery(request):
                 "id": post.id,
                 "title": post.title,
                 "image": post.image,
-                "detail_url": f"/post/{post.id}/",
+                "detail_url": f"/app/posts/{post.id}/",  # 변경됨: /post/ -> /app/posts/
                 "content": post.content,  # 추가: 내용 필드
             }
             for post in posts
