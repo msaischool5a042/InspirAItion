@@ -600,14 +600,14 @@ def public_gallery(request):
 
     if tag_filter:
         # __contains 대신 파이썬 리스트 필터링 수행
-        all_posts = list(posts_qs.order_by("date_posted"))
+        all_posts = list(posts_qs.order_by("-date_posted"))
         posts_list = [
             post for post in all_posts if post.tags and tag_filter in post.tags
         ]
         posts = posts_list[offset : offset + post_cnt]
         total_count = len(posts_list)
     else:
-        posts = posts_qs.order_by("date_posted")[offset : offset + post_cnt]
+        posts = posts_qs.order_by("-date_posted")[offset : offset + post_cnt]
 
     has_more = (offset + post_cnt) < total_count
 
@@ -761,29 +761,6 @@ def contact_us(request):
 
 def ai_play(request):
     return render(request, "app/ai_play.html")  # html만 있고, 아직 기능 merge 전
-
-
-def art_gal(request):
-    """공개 갤러리"""
-    search_query = request.GET.get("search", "")
-    posts = Post.objects.filter(is_public=True)
-
-    if search_query:
-        posts = posts.filter(title__icontains=search_query)
-
-    posts = posts.order_by("date_posted")
-    search_query = request.GET.get("search", "")
-    posts = Post.objects.filter(is_public=True)
-
-    if search_query:
-        posts = posts.filter(title__icontains=search_query)
-
-    posts = posts.order_by("date_posted")
-    return render(
-        request,
-        "app/artgal.html",
-        {"posts": posts, "gallery_type": "public", "search_query": search_query},
-    )
 
 
 def index_ai(request):
