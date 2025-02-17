@@ -541,15 +541,20 @@ def my_gallery(request):
     posts_qs = Post.objects.filter(user=request.user)
     if search_query:
         posts_qs = posts_qs.filter(title__icontains=search_query)
+    # 태그 필터 적용: __contains 대신 파이썬 리스트 필터링 수행
     if tag_filter:
-        posts_qs = posts_qs.filter(tags__contains=tag_filter)
-    posts_qs = posts_qs.order_by("-date_posted")
+        all_posts = list(posts_qs.order_by("-date_posted"))
+        posts_list = [
+            post for post in all_posts if post.tags and tag_filter in post.tags
+        ]
+    else:
+        posts_list = list(posts_qs.order_by("-date_posted"))
 
     page = int(request.GET.get("page", "1"))
     post_cnt = 9
     offset = (page - 1) * post_cnt
-    total_count = posts_qs.count()
-    posts = posts_qs[offset : offset + post_cnt]
+    total_count = len(posts_list)
+    posts = posts_list[offset : offset + post_cnt]
     has_more = (offset + post_cnt) < total_count
 
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
@@ -593,7 +598,11 @@ def public_gallery(request):
     total_count = posts_qs.count()
 
     if tag_filter:
-        posts_list = list(posts_qs.filter(tags__contains=tag_filter))
+        # __contains 대신 파이썬 리스트 필터링 수행
+        all_posts = list(posts_qs.order_by("date_posted"))
+        posts_list = [
+            post for post in all_posts if post.tags and tag_filter in post.tags
+        ]
         posts = posts_list[offset : offset + post_cnt]
         total_count = len(posts_list)
     else:
