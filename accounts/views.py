@@ -31,17 +31,17 @@ def profile_update(request):
         Profile.objects.create(user=request.user)
 
     if request.method == "POST":
+        # 기존 등록된 image 값을 저장
+        old_image = request.user.profile.profile_image
         form = ProfileUpdateForm(
             request.POST, request.FILES, instance=request.user.profile
         )
         if form.is_valid():
             profile = form.save(commit=False)
-
-            if "image_file" in request.FILES:
+            if "image_file" in request.FILES and request.FILES["image_file"]:
                 file = request.FILES["image_file"]
                 file_extension = file.name.split(".")[-1]
                 file_name = f"profile_{request.user.username}.{file_extension}"
-
                 try:
                     blob_service_client = BlobServiceClient.from_connection_string(
                         settings.AZURE_CONNECTION_STRING
@@ -50,14 +50,14 @@ def profile_update(request):
                     blob_client = blob_service_client.get_blob_client(
                         container=container_name, blob=file_name
                     )
-
                     blob_client.upload_blob(file, overwrite=True)
                     profile.profile_image = blob_client.url
-
                 except Exception as e:
                     print("==== Blob 업로드 실패 ====")
                     print("에러:", str(e))
-
+            else:
+                # 새로운 이미지 파일이 등록되지 않은 경우, 기존 profile_image를 유지
+                profile.profile_image = old_image
             profile.save()
             return redirect("home")
     else:
