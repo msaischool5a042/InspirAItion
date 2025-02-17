@@ -18,7 +18,7 @@ from util.common.azure_speech import synthesize_text_to_speech
 from django.views.decorators.http import require_GET
 
 from .forms import PostWithAIForm, PostEditForm
-from .models import Post, AIGeneration, Comment
+from .models import Post, AIGeneration, Comment, TagUsage  # TagUsage 추가
 
 logging.basicConfig(
     level=logging.INFO,
@@ -279,7 +279,6 @@ def index(request: HttpRequest) -> HttpResponse:
 @login_required
 def post_detail(request: HttpRequest, pk: int) -> HttpResponse:
     post = get_object_or_404(Post.objects.select_related("user__profile"), pk=pk)
-    caption, tags = get_image_caption_and_tags(post.image)
     # 큐레이션 텍스트는 초기에는 빈 값으로 전달
     curation_text = ""
 
@@ -291,8 +290,8 @@ def post_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "app/post_detail.html",
         {
             "post": post,
-            "caption": caption[0] if caption else "",
-            "tags": ", ".join(tags),
+            # "caption": caption[0] if caption else "",
+            # "tags": ", ".join(tags),
             "curation_text": curation_text,
         },
     )
@@ -302,7 +301,9 @@ def post_detail(request: HttpRequest, pk: int) -> HttpResponse:
 @require_http_methods(["POST"])
 def generate_curation(request, pk):
     post = get_object_or_404(Post.objects.select_related("user__profile"), pk=pk)
-    caption, tags = get_image_caption_and_tags(post.image)
+    caption = post.caption
+    tags = post.tags
+
     caption_str = caption[0] if caption else ""
     try:
         data = json.loads(request.body)
@@ -445,6 +446,8 @@ def create_post(request: HttpRequest) -> HttpResponse:
 
             generated_image_url = request.POST.get("generated_image_url")
             generated_prompt = request.POST.get("generated_prompt")
+            caption, tags = get_image_caption_and_tags(generated_image_url)
+
             if generated_image_url:
                 blob_url = save_image_to_blob(
                     generated_image_url, form.cleaned_data["prompt"], request.user.id
@@ -460,13 +463,45 @@ def create_post(request: HttpRequest) -> HttpResponse:
                     )
             if generated_prompt:
                 post.generated_prompt = generated_prompt
+            if caption:
+                post.caption = caption[0]
+            if tags:
+                # tags를 리스트 형태로 저장
+                post.tags = tags
 
             post.save()
             form.save_m2m()
+
+            # 분석된 tags 정보를 TagUsage 업데이트
+            if tags:
+                update_tag_usage_on_create(tags)
+
             return redirect("post_detail", pk=post.pk)
     else:
         form = PostWithAIForm()
     return render(request, "app/create_post.html", {"form": form})
+
+
+def update_tag_usage_on_create(tags):
+    if not isinstance(tags, list):
+        return
+    for tag in tags:
+        tag_usage, created = TagUsage.objects.get_or_create(tag=tag)
+        tag_usage.count += 1
+        tag_usage.save()
+
+
+def update_tag_usage_on_delete(tags):
+    if not isinstance(tags, list):
+        return
+    for tag in tags:
+        try:
+            tag_usage = TagUsage.objects.get(tag=tag)
+            if tag_usage.count > 0:
+                tag_usage.count -= 1
+                tag_usage.save()
+        except TagUsage.DoesNotExist:
+            continue
 
 
 @login_required
@@ -492,7 +527,9 @@ def delete_post(request: HttpRequest, pk: int) -> HttpResponse:
     if request.method == "POST":
         previous_url = request.META.get("HTTP_REFERER", "home")
         logging.info(f"이전 화면의 주소: {previous_url}")
-        # post.delete()
+        if post.tags:
+            update_tag_usage_on_delete(post.tags)
+        post.delete()
         return redirect("public_gallery")
     return render(request, "app/post_detail.html", {"post": post})
 
@@ -501,46 +538,50 @@ def delete_post(request: HttpRequest, pk: int) -> HttpResponse:
 def my_gallery(request):
     """사용자의 개인 갤러리"""
     search_query = request.GET.get("search", "")
+    tag_filter = request.GET.get("tag", "")
     posts = Post.objects.filter(user=request.user)
-
     if search_query:
         posts = posts.filter(title__icontains=search_query)
-
-    posts = posts.order_by("-date_posted")
-    search_query = request.GET.get("search", "")
-    posts = Post.objects.filter(user=request.user)
-
-    if search_query:
-        posts = posts.filter(title__icontains=search_query)
-
-    posts = posts.order_by("-date_posted")
+    posts = list(posts)  # queryset을 list로 변환
+    if tag_filter:
+        posts = [post for post in posts if post.tags and tag_filter in post.tags]
+    posts.sort(key=lambda p: p.date_posted, reverse=True)
+    top_tags = TagUsage.objects.order_by("-count")[:10]
     return render(
         request,
         "app/gallery.html",
-        {"posts": posts, "gallery_type": "personal", "search_query": search_query},
+        {
+            "posts": posts,
+            "gallery_type": "personal",
+            "search_query": search_query,
+            "top_tags": top_tags,
+            "selected_tag": tag_filter,
+        },
     )
 
 
 def public_gallery(request):
     """공개 갤러리"""
     search_query = request.GET.get("search", "")
+    tag_filter = request.GET.get("tag", "")
     posts = Post.objects.filter(is_public=True)
-
     if search_query:
         posts = posts.filter(title__icontains=search_query)
-
-    posts = posts.order_by("date_posted")
-    search_query = request.GET.get("search", "")
-    posts = Post.objects.filter(is_public=True)
-
-    if search_query:
-        posts = posts.filter(title__icontains=search_query)
-
-    posts = posts.order_by("date_posted")
+    posts = list(posts)  # queryset을 list로 변환
+    if tag_filter:
+        posts = [post for post in posts if post.tags and tag_filter in post.tags]
+    posts.sort(key=lambda p: p.date_posted)
+    top_tags = TagUsage.objects.order_by("-count")[:10]
     return render(
         request,
         "app/gallery.html",
-        {"posts": posts, "gallery_type": "public", "search_query": search_query},
+        {
+            "posts": posts,
+            "gallery_type": "public",
+            "search_query": search_query,
+            "top_tags": top_tags,
+            "selected_tag": tag_filter,
+        },
     )
 
 
