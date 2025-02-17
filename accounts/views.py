@@ -26,6 +26,10 @@ def signup(request):
 
 @login_required
 def profile_update(request):
+    # 프로필이 없는 경우 생성
+    if not hasattr(request.user, "profile"):
+        Profile.objects.create(user=request.user)
+
     if request.method == "POST":
         form = ProfileUpdateForm(
             request.POST, request.FILES, instance=request.user.profile
