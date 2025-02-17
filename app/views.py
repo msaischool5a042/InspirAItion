@@ -580,6 +580,7 @@ def my_gallery(request):
             "search_query": search_query,
             "top_tags": top_tags,
             "selected_tag": tag_filter,
+            "has_more": has_more,  # 추가
         },
     )
 
@@ -633,6 +634,7 @@ def public_gallery(request):
             "search_query": search_query,
             "top_tags": top_tags,
             "selected_tag": tag_filter,
+            "has_more": has_more,  # 추가
         },
     )
 

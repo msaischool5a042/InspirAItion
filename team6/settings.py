@@ -117,24 +117,24 @@ WSGI_APPLICATION = "team6.wsgi.application"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 # local sqlite3 database
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
-
-# Azure PostgreSQL database
 # DATABASES = {
 #     "default": {
-#         "ENGINE": env("DATABASE_ENGINE"),
-#         "NAME": env("DATABASE_NAME"),
-#         "USER": env("DATABASE_USER"),
-#         "PASSWORD": env("DATABASE_PASSWORD"),
-#         "HOST": env("DATABASE_HOST"),
-#         "PORT": env("DATABASE_PORT"),
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
 #     }
 # }
+
+# Azure PostgreSQL database
+DATABASES = {
+    "default": {
+        "ENGINE": env("DATABASE_ENGINE"),
+        "NAME": env("DATABASE_NAME"),
+        "USER": env("DATABASE_USER"),
+        "PASSWORD": env("DATABASE_PASSWORD"),
+        "HOST": env("DATABASE_HOST"),
+        "PORT": env("DATABASE_PORT"),
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

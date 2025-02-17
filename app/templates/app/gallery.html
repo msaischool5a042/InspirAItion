@@ -46,7 +46,7 @@
         {% endfor %}
     </div>
     <div id="load-more-container" class="d-flex justify-content-center my-4">
-        {% if posts|length >= 3 %}
+        {% if has_more %}
         <button id="load-more-btn" class="btn btn-primary btn-lg" onclick="loadMore()" style="padding: 12px 24px; font-weight: bold;">
             더보기
         </button>
