@@ -24,11 +24,11 @@
             {% if post.image %}
             <div class="mb-3">
                 <img src="{{ post.image }}" alt="{{ post.title }}" class="img-fluid">
-                {% if caption %}
-                <p class="mt-2">{{ caption }}</p>
+                {% if post.caption %}
+                <p class="mt-2">{{ post.caption }}</p>
                 {% endif %}
-                {% if tags %}
-                <p class="mt-2"><small class="text-muted">태그: {{ tags }}</small></p>
+                {% if post.tags %}
+                <p class="mt-2"><small class="text-muted">태그: {{ post.tags }}</small></p>
                 {% endif %}
                 {% if curation_text %}
                 <p id="curationText" class="mt-2"><small class="text-muted">큐레이션: {{ curation_text }}</small></p>

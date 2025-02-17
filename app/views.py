@@ -279,7 +279,6 @@ def index(request: HttpRequest) -> HttpResponse:
 @login_required
 def post_detail(request: HttpRequest, pk: int) -> HttpResponse:
     post = get_object_or_404(Post.objects.select_related("user__profile"), pk=pk)
-    caption, tags = get_image_caption_and_tags(post.image)
     # 큐레이션 텍스트는 초기에는 빈 값으로 전달
     curation_text = ""
 
@@ -291,8 +290,8 @@ def post_detail(request: HttpRequest, pk: int) -> HttpResponse:
         "app/post_detail.html",
         {
             "post": post,
-            "caption": caption[0] if caption else "",
-            "tags": ", ".join(tags),
+            # "caption": caption[0] if caption else "",
+            # "tags": ", ".join(tags),
             "curation_text": curation_text,
         },
     )
@@ -302,7 +301,9 @@ def post_detail(request: HttpRequest, pk: int) -> HttpResponse:
 @require_http_methods(["POST"])
 def generate_curation(request, pk):
     post = get_object_or_404(Post.objects.select_related("user__profile"), pk=pk)
-    caption, tags = get_image_caption_and_tags(post.image)
+    caption = post.caption
+    tags = post.tags
+
     caption_str = caption[0] if caption else ""
     try:
         data = json.loads(request.body)
@@ -445,6 +446,8 @@ def create_post(request: HttpRequest) -> HttpResponse:
 
             generated_image_url = request.POST.get("generated_image_url")
             generated_prompt = request.POST.get("generated_prompt")
+            caption, tags = get_image_caption_and_tags(generated_image_url)
+
             if generated_image_url:
                 blob_url = save_image_to_blob(
                     generated_image_url, form.cleaned_data["prompt"], request.user.id
@@ -460,6 +463,10 @@ def create_post(request: HttpRequest) -> HttpResponse:
                     )
             if generated_prompt:
                 post.generated_prompt = generated_prompt
+            if caption:
+                post.caption = caption[0]
+            if tags:
+                post.tags = ", ".join(tags)
 
             post.save()
             form.save_m2m()
