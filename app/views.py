@@ -282,6 +282,10 @@ def post_detail(request: HttpRequest, pk: int) -> HttpResponse:
     caption, tags = get_image_caption_and_tags(post.image)
     # 큐레이션 텍스트는 초기에는 빈 값으로 전달
     curation_text = ""
+
+    previous_url = request.META.get("HTTP_REFERER", "home")
+    logging.info(f"이전 화면의 주소: {previous_url}")
+
     return render(
         request,
         "app/post_detail.html",
@@ -472,7 +476,10 @@ def edit_post(request: HttpRequest, pk: int) -> HttpResponse:
     if request.method == "POST":
         form = PostEditForm(request.POST, instance=post)
         if form.is_valid():
-            post = form.save()
+            post = form.save(commit=False)
+            # 수정: is_public 필드 업데이트 추가
+            post.is_public = True if request.POST.get("is_public") else False
+            post.save()
             return redirect("post_detail", pk=pk)
     else:
         form = PostEditForm(instance=post)
@@ -483,8 +490,10 @@ def edit_post(request: HttpRequest, pk: int) -> HttpResponse:
 def delete_post(request: HttpRequest, pk: int) -> HttpResponse:
     post = get_object_or_404(Post, pk=pk)
     if request.method == "POST":
-        post.delete()
-        return redirect("home")
+        previous_url = request.META.get("HTTP_REFERER", "home")
+        logging.info(f"이전 화면의 주소: {previous_url}")
+        # post.delete()
+        return redirect("public_gallery")
     return render(request, "app/post_detail.html", {"post": post})
 
 
