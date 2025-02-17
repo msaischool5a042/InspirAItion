@@ -268,13 +268,6 @@
             document.getElementById('pauseAudioBtn').style.display = 'inline-block';
         }
     });
-
-    // 삭제 폼 제출 시 사용자 확인 추가
-    document.getElementById('deleteForm')?.addEventListener('submit', function (e) {
-        if (!confirm("정말로 게시글을 삭제하시겠습니까?")) {
-            e.preventDefault();
-        }
-    });
 </script>
 {% endblock content %}
 

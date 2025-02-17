@@ -538,46 +538,50 @@ def delete_post(request: HttpRequest, pk: int) -> HttpResponse:
 def my_gallery(request):
     """사용자의 개인 갤러리"""
     search_query = request.GET.get("search", "")
+    tag_filter = request.GET.get("tag", "")
     posts = Post.objects.filter(user=request.user)
-
     if search_query:
         posts = posts.filter(title__icontains=search_query)
-
-    posts = posts.order_by("-date_posted")
-    search_query = request.GET.get("search", "")
-    posts = Post.objects.filter(user=request.user)
-
-    if search_query:
-        posts = posts.filter(title__icontains=search_query)
-
-    posts = posts.order_by("-date_posted")
+    posts = list(posts)  # queryset을 list로 변환
+    if tag_filter:
+        posts = [post for post in posts if post.tags and tag_filter in post.tags]
+    posts.sort(key=lambda p: p.date_posted, reverse=True)
+    top_tags = TagUsage.objects.order_by("-count")[:10]
     return render(
         request,
         "app/gallery.html",
-        {"posts": posts, "gallery_type": "personal", "search_query": search_query},
+        {
+            "posts": posts,
+            "gallery_type": "personal",
+            "search_query": search_query,
+            "top_tags": top_tags,
+            "selected_tag": tag_filter,
+        },
     )
 
 
 def public_gallery(request):
     """공개 갤러리"""
     search_query = request.GET.get("search", "")
+    tag_filter = request.GET.get("tag", "")
     posts = Post.objects.filter(is_public=True)
-
     if search_query:
         posts = posts.filter(title__icontains=search_query)
-
-    posts = posts.order_by("date_posted")
-    search_query = request.GET.get("search", "")
-    posts = Post.objects.filter(is_public=True)
-
-    if search_query:
-        posts = posts.filter(title__icontains=search_query)
-
-    posts = posts.order_by("date_posted")
+    posts = list(posts)  # queryset을 list로 변환
+    if tag_filter:
+        posts = [post for post in posts if post.tags and tag_filter in post.tags]
+    posts.sort(key=lambda p: p.date_posted)
+    top_tags = TagUsage.objects.order_by("-count")[:10]
     return render(
         request,
         "app/gallery.html",
-        {"posts": posts, "gallery_type": "public", "search_query": search_query},
+        {
+            "posts": posts,
+            "gallery_type": "public",
+            "search_query": search_query,
+            "top_tags": top_tags,
+            "selected_tag": tag_filter,
+        },
     )
 
 
