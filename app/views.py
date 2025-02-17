@@ -279,20 +279,16 @@ def index(request: HttpRequest) -> HttpResponse:
 @login_required
 def post_detail(request: HttpRequest, pk: int) -> HttpResponse:
     post = get_object_or_404(Post.objects.select_related("user__profile"), pk=pk)
-    # 큐레이션 텍스트는 초기에는 빈 값으로 전달
     curation_text = ""
-
-    previous_url = request.META.get("HTTP_REFERER", "home")
+    previous_url = request.META.get("HTTP_REFERER", "")
     logging.info(f"이전 화면의 주소: {previous_url}")
-
     return render(
         request,
         "app/post_detail.html",
         {
             "post": post,
-            # "caption": caption[0] if caption else "",
-            # "tags": ", ".join(tags),
             "curation_text": curation_text,
+            "previous_url": previous_url,  # 추가
         },
     )
 
