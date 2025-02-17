@@ -1,8 +1,14 @@
+<!-- Header Start -->
 {% extends "app/common/frame.html" %}
+{% load static %}
 {% load django_bootstrap5 %}
+{% block title %} New Home {% endblock title %}
+{% block header %}
+{% include "app/common/header.html" %}
+{% endblock header %}
+<!-- Header End -->
 
 {% block content %}
-<h2>회원가입</h2>
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-6">
@@ -24,4 +30,10 @@
         </div>
     </div>
 </div>
-{% endblock %}
+{% endblock content %}
+
+<!-- Footer Start -->
+{% block footer %}
+{% include "app/common/footer.html" %}
+{% endblock footer %}
+<!-- Footer End -->
