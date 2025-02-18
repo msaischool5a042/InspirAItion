@@ -25,7 +25,9 @@
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{% url 'my_gallery' %}">My Gallery</a></li>
                             <li><a class="dropdown-item" href="{% url 'public_gallery' %}">Public Gallery</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item" href="{% url 'fullscreen_gallery' %}">Fullscreen Gallery</a></li>
                         </ul>
                     </li>
@@ -33,33 +35,33 @@
 
                 <div class="d-flex align-items-center">
                     {% if user.is_authenticated %}
-                    <div class="dropdown">
-                        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-                            {% if user.profile.profile_image %}
-                            <img src="{{ user.profile.profile_image }}" alt="프로필" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
-                            {% endif %}
-                            <span class="text-white">{{ user.profile.nickname|default:user.username }}</span>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{% url 'profile_update' %}">프로필 수정</a></li>
-                            <li><a class="dropdown-item" href="{% url 'my_gallery' %}">내 갤러리</a></li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li>
-                                <form action="{% url 'logout' %}" method="post" class="dropdown-item">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-link p-0">로그아웃</button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
-                    {% else %}
-                    <a href="{% url 'login' %}" class="btn btn-outline-light me-2">로그인</a>
-                    <a href="{% url 'signup' %}" class="btn btn-primary">회원가입</a>
-                    {% endif %}
+                    <div class="dropdown w-100 w-md-50"></div>
+                    <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+                        {% if user.profile.profile_image %}
+                        <img src="{{ user.profile.profile_image }}" alt="프로필" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                        {% endif %}
+                        <span class="text-white">{{ user.profile.nickname|default:user.username }}</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{% url 'profile_update' %}">프로필 수정</a></li>
+                        <li><a class="dropdown-item" href="{% url 'my_gallery' %}">내 갤러리</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <form action="{% url 'logout' %}" method="post" class="dropdown-item">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-link p-0">로그아웃</button>
+                            </form>
+                        </li>
+                    </ul>
                 </div>
+                {% else %}
+                <a href="{% url 'login' %}" class="btn btn-outline-light me-2">로그인</a>
+                <a href="{% url 'signup' %}" class="btn btn-primary">회원가입</a>
+                {% endif %}
             </div>
+        </div>
         </div>
     </nav>
 </header>
