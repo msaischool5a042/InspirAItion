@@ -69,6 +69,24 @@
                 <a href="{% if post.is_public %}{% url 'public_gallery' %}{% else %}{% url 'my_gallery' %}{% endif %}" class="btn btn-secondary">목록</a>
                 {% endif %}
             </div>
+
+            <div class="d-flex align-items-center mb-3">
+                {% if user.is_authenticated %}
+                    <button id="likeButton" class="btn btn-outline-primary me-2" data-post-id="{{ post.id }}">
+                        <i class="fas fa-heart {% if user_liked %}text-danger{% endif %}"></i>
+                        좋아요 <span id="likeCount">{{ post.likes_count }}</span>
+                    </button>
+                {% else %}
+                    <button class="btn btn-outline-secondary me-2" disabled>
+                        <i class="fas fa-heart"></i>
+                        좋아요 {{ post.likes_count }}
+                    </button>
+                {% endif %}
+
+                {% if post.is_popular %}
+                    <span class="badge bg-warning text-dark ms-2">인기</span>
+                {% endif %}
+            </div>
         </div>
     </div>
 
@@ -271,6 +289,43 @@
             this.style.display = 'none';
             document.getElementById('pauseAudioBtn').style.display = 'inline-block';
         }
+    });
+
+    document.getElementById('likeButton')?.addEventListener('click', function() {
+        const postId = this.dataset.postId;
+        const button = this;
+        const icon = button.querySelector('i');
+        const countSpan = document.getElementById('likeCount');
+
+        fetch(`/app/posts/${postId}/like/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            countSpan.textContent = data.likes_count;
+            if (data.liked) {
+                icon.classList.add('text-danger');
+            } else {
+                icon.classList.remove('txt-danger');
+            }
+
+            const existingBadge = document.querySelector('.badge.bg-warning');
+            if (data.is_popular && ! existingBadge) {
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-warning text-dark ms-2';
+                badge.textContent = '인기';
+                button.parentNode.appendChild(badge);
+            } else if (!data.is_popular && existingBadge) {
+                existingBadge.remove();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('좋아요 처리 중 오류가 발생했습니다.')
+        });
     });
 </script>
 {% endblock content %}
