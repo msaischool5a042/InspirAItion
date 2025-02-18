@@ -24,4 +24,5 @@ urlpatterns = [
         name="generate_curation",
     ),
     path("read_text/", views.read_text, name="read_text"),
+    path('posts/<int:pk>/like/', views.like_post, name='like_post'),
 ]
