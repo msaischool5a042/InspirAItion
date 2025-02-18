@@ -413,8 +413,8 @@ def generate_ai_curation(selected_style, user_prompt, captions, tags):
     style_prompt = style_prompts.get(selected_style, "")
     if style_prompt:
         try:
-            response = GPT_CLIENT_o3.chat.completions.create(
-                model="team6-o3-mini",
+            response = GPT_CLIENT.chat.completions.create(
+                model="gpt-4o",
                 messages=[
                     {
                         "role": "system",
