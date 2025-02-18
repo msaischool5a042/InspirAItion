@@ -18,7 +18,7 @@ from util.common.azure_speech import synthesize_text_to_speech
 from django.views.decorators.http import require_GET
 
 from .forms import PostWithAIForm, PostEditForm
-from .models import Post, AIGeneration, Comment, TagUsage  # TagUsage 추가
+from .models import Post, AIGeneration, Comment, TagUsage, Like
 
 logging.basicConfig(
     level=logging.INFO,
@@ -279,6 +279,7 @@ def index(request: HttpRequest) -> HttpResponse:
 @login_required
 def post_detail(request: HttpRequest, pk: int) -> HttpResponse:
     post = get_object_or_404(Post.objects.select_related("user__profile"), pk=pk)
+    user_liked = Like.objects.filter(user=request.user, post=post).exists() if request.user.is_authenticated else False
     curation_text = ""
     previous_url = request.META.get("HTTP_REFERER", "")
     logging.info(f"이전 화면의 주소: {previous_url}")
@@ -288,7 +289,8 @@ def post_detail(request: HttpRequest, pk: int) -> HttpResponse:
         {
             "post": post,
             "curation_text": curation_text,
-            "previous_url": previous_url,  # 추가
+            "previous_url": previous_url,
+            "user_liked": user_liked
         },
     )
 
@@ -789,3 +791,25 @@ def fullscreen_gallery(request):
     )
 
     return render(request, "app/fullscreen_gallery.html", {"posts": posts})
+
+@login_required
+def like_post(request, pk):
+    try:
+        post = get_object_or_404(Post, pk=pk)
+        like, created = Like.objects.get_or_create(user=request.user, post=post)
+
+        if not created:
+            like.delete()
+            liked = False
+
+        else:
+            liked = True
+
+        return JsonResponse({
+            'liked': liked,
+            'likes_count': post.likes_count,
+            'is_popular': post.is_popular
+        })
+    
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

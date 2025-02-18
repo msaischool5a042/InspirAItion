@@ -52,6 +52,14 @@ class Post(models.Model):
             if hasattr(self.user, "profile")
             else self.user.username
         )
+    
+    @property
+    def likes_count(self):
+        return self.likes.count()
+    
+    @property
+    def is_popular(self):
+        return self.likes_count >= 10
 
 
 class Comment(models.Model):
@@ -102,8 +110,10 @@ class TagUsage(models.Model):
         return f"{self.tag} : {self.count}"
 
 
-# class Tag(models.Model):
-#     name = models.CharField(max_length=100, unique=True)
+class Like(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='likes')
+    created_at = models.DateTimeField(auto_now_add=True)
 
-#     def __str__(self):
-#         return self.name
+    class Meta:
+        unique_together = ('user', 'post')
