@@ -23,7 +23,9 @@
 
             {% if post.image %}
             <div class="mb-3">
-                <img src="{{ post.image }}" alt="{{ post.title }}" class="img-fluid">
+                <div class="text-center">
+                    <img src="{{ post.image }}" alt="{{ post.title }}" class="img-fluid">
+                </div>
                 {% if post.caption %}
                 <p class="mt-2">{{ post.caption }}</p>
                 {% endif %}
@@ -35,8 +37,8 @@
                 {% else %}
                 <p id="curationText" class="mt-2"><small class="text-muted"></small></p>
                 {% endif %}
-                <!-- Modified: 큐레이션 스타일 라벨, select, 생성 및 음성 듣기 버튼을 한 줄에 배치 -->
-                <div class="d-flex align-items-center gap-2 mt-2">
+                <!-- Modified: 큐레이션 스타일 라벨, select, 생성 및 음성 듣기 버튼을 한 줄에 배치 (모바일 대응: flex-wrap 추가) -->
+                <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
                     <label for="curationStyleSelect" class="mb-0">큐레이션 스타일:</label>
                     <select id="curationStyleSelect" class="form-select form-select-sm" style="width: auto;">
                         <option value="Emotional">Emotional</option>

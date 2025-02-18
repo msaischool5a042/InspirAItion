@@ -1,25 +1,23 @@
-<div class="row" id="posts-container">
-    {% for post in posts %}
-    <div class="col-md-4 mb-4 post-item">
-        <div class="card">
-            {% if post.image %}
-            <img src="{{ post.image }}" class="card-img-top" alt="{{ post.title }}">
-            {% endif %}
-            <div class="card-body">
-                <h5 class="card-title">{{ post.title }}</h5>
-                <p class="card-text">{{ post.content|truncatechars:100 }}</p>
-                <div class="d-flex justify-content-between align-items-center">
-                    <a href="{% url 'post_detail' post.id %}" class="btn btn-primary">자세히 보기</a>
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-heart {% if post.is_popular %}text-danger{% endif %} me-1"></i>
-                        <span>{{ post.likes_count }}</span>
-                        {% if post.is_popular %}
-                        <span class="badge bg-warning text-dark ms-2">인기</span>
-                        {% endif %}
-                    </div>
+{% for post in posts %}
+<div class="col-md-4 mb-4 post-item">
+    <div class="card">
+        {% if post.image %}
+        <img src="{{ post.image }}" class="card-img-top" alt="{{ post.title }}">
+        {% endif %}
+        <div class="card-body">
+            <h5 class="card-title">{{ post.title }}</h5>
+            <p class="card-text">{{ post.content|truncatechars:100 }}</p>
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="{% url 'post_detail' post.id %}" class="btn btn-primary">자세히 보기</a>
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-heart {% if post.is_popular %}text-danger{% endif %} me-1"></i>
+                    <span>{{ post.likes_count }}</span>
+                    {% if post.is_popular %}
+                    <span class="badge bg-warning text-dark ms-2">인기</span>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
-    {% endfor %}
 </div>
+{% endfor %}
