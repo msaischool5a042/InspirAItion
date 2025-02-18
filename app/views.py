@@ -279,7 +279,11 @@ def index(request: HttpRequest) -> HttpResponse:
 @login_required
 def post_detail(request: HttpRequest, pk: int) -> HttpResponse:
     post = get_object_or_404(Post.objects.select_related("user__profile"), pk=pk)
-    user_liked = Like.objects.filter(user=request.user, post=post).exists() if request.user.is_authenticated else False
+    user_liked = (
+        Like.objects.filter(user=request.user, post=post).exists()
+        if request.user.is_authenticated
+        else False
+    )
     curation_text = ""
     previous_url = request.META.get("HTTP_REFERER", "")
     logging.info(f"이전 화면의 주소: {previous_url}")
@@ -290,7 +294,7 @@ def post_detail(request: HttpRequest, pk: int) -> HttpResponse:
             "post": post,
             "curation_text": curation_text,
             "previous_url": previous_url,
-            "user_liked": user_liked
+            "user_liked": user_liked,
         },
     )
 
@@ -536,7 +540,9 @@ def delete_post(request: HttpRequest, pk: int) -> HttpResponse:
     return render(request, "app/post_detail.html", {"post": post})
 
 
-@login_required
+from django.template.loader import render_to_string
+
+
 def my_gallery(request):
     search_query = request.GET.get("search", "")
     tag_filter = request.GET.get("tag", "")
@@ -560,17 +566,10 @@ def my_gallery(request):
     has_more = (offset + post_cnt) < total_count
 
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        posts_data = [
-            {
-                "id": post.id,
-                "title": post.title,
-                "image": post.image,
-                "detail_url": f"/app/posts/{post.id}/",  # 변경됨: /post/ -> /app/posts/
-                "content": post.content,
-            }
-            for post in posts
-        ]
-        return JsonResponse({"posts": posts_data, "has_more": has_more})
+        html_fragment = render_to_string(
+            "app/_post_list.html", {"posts": posts}, request=request
+        )
+        return JsonResponse({"html": html_fragment, "has_more": has_more})
 
     top_tags = TagUsage.objects.order_by("-count")[:10]
     return render(
@@ -613,18 +612,12 @@ def public_gallery(request):
 
     has_more = (offset + post_cnt) < total_count
 
+    # AJAX 요청 시 HTML 프래그먼트 반환
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        posts_data = [
-            {
-                "id": post.id,
-                "title": post.title,
-                "image": post.image,
-                "detail_url": f"/app/posts/{post.id}/",  # 변경됨: /post/ -> /app/posts/
-                "content": post.content,  # 추가: 내용 필드
-            }
-            for post in posts
-        ]
-        return JsonResponse({"posts": posts_data, "has_more": has_more})
+        html_fragment = render_to_string(
+            "app/_post_list.html", {"posts": posts}, request=request
+        )
+        return JsonResponse({"html": html_fragment, "has_more": has_more})
 
     top_tags = TagUsage.objects.order_by("-count")[:10]
     return render(
@@ -792,6 +785,7 @@ def fullscreen_gallery(request):
 
     return render(request, "app/fullscreen_gallery.html", {"posts": posts})
 
+
 @login_required
 def like_post(request, pk):
     try:
@@ -805,11 +799,13 @@ def like_post(request, pk):
         else:
             liked = True
 
-        return JsonResponse({
-            'liked': liked,
-            'likes_count': post.likes_count,
-            'is_popular': post.is_popular
-        })
-    
+        return JsonResponse(
+            {
+                "liked": liked,
+                "likes_count": post.likes_count,
+                "is_popular": post.is_popular,
+            }
+        )
+
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({"error": str(e)}, status=500)
