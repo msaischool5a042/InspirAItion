@@ -685,6 +685,7 @@ def public_gallery(request):
         return JsonResponse({"html": html_fragment, "has_more": has_more})
 
     top_tags = TagUsage.objects.order_by("-count")[:10]
+    top_posts = get_top_liked_posts()
 
     return render(
         request,
@@ -697,6 +698,7 @@ def public_gallery(request):
             "selected_tag": tag_filter,
             "has_more": has_more,
             "sort_by": sort_by,
+            "top_posts": top_posts
         },
     )
 
@@ -888,3 +890,8 @@ def get_tag_image_urls(tags):
         )
         tag_images[tag] = most_liked_post.image if most_liked_post else None
     return tag_images
+
+def get_top_liked_posts():
+    return Post.objects.filter(is_public=True).annotate(
+        like_count=Count('likes')
+    ).order_by('-like_count')[:3]

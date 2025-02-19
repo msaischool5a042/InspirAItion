@@ -7,67 +7,121 @@
 {% endblock header %}
 
 {% block css %}
-    <link rel="stylesheet" href="{% static 'css/gallery.css' %}">
+<link rel="stylesheet" href="{% static 'css/gallery.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid gallery-container py-5">
-    <div class="tag-section position-relative my-4">
-        <button class="btn scroll-left position-absolute start-0 top-50 translate-middle-y" style="z-index: 1;">
-            <i class="fas fa-chevron-left"></i>
-        </button>
-        
-        <div class="tag-navigation">
-            <a href="{% if search_query %}?search={{ search_query }}{% endif %}" 
-               class="tag-item {% if not selected_tag %}active{% endif %}">
-                전체보기
-            </a>
-            {% for tag in top_tags %}
-            <a href="?tag={{ tag.tag }}{% if search_query %}&search={{ search_query }}{% endif %}" 
-               class="tag-item {% if tag.tag == selected_tag %}active{% endif %}">
-                {{ tag.tag }}
-                <span class="tag-count">{{ tag.count }}</span>
-            </a>
-            {% endfor %}
+<div class="gallery-wrapper">
+    <div class="container-fluid gallery-container py-5">
+        {% if gallery_type == 'public' %}
+        {% if top_posts %}
+        <div class="top-posts-slider mb-4">
+            <div class="container">
+                <div id="topPostsCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        {% for post in top_posts %}
+                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                            <div class="top-post-card mx-auto">
+                                <img src="{{ post.image }}" class="top-post-image" alt="{{ post.title }}">
+                                <div class="top-post-info">
+                                    <h4>{{ post.title }}</h4>
+                                    <p class="mb-2">{{ post.content|truncatechars:100 }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>by {{ post.author_nickname }}</span>
+                                        <div>
+                                            <i class="fas fa-heart text-danger"></i>
+                                            <span>{{ post.likes_count }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#topPostsCarousel"
+                        data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#topPostsCarousel"
+                        data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            </div>
         </div>
-        
-        <button class="btn scroll-right position-absolute end-0 top-50 translate-middle-y" style="z-index: 1;">
-            <i class="fas fa-chevron-right"></i>
-        </button>
-    </div>
+        {% endif %}
+        {% else %}
+        <style>
+            .tag-section {
+                margin-top: 0rem !important;
+            }
+        </style>
+        {% endif %}
+        <div class="tag-section position-relative my-4">
+            <button class="btn scroll-left position-absolute start-0 top-50 translate-middle-y" style="z-index: 1;">
+                <i class="fas fa-chevron-left"></i>
+            </button>
 
-    <div class="gallery-header d-flex justify-content-between align-items-center mb-4">
-        <h2>{% if gallery_type == 'personal' %}내 갤러리{% else %}공개 갤러리{% endif %}</h2>
-        
-        <div class="d-flex gap-3">
-            <form method="get" class="d-flex gap-2">
-                <input type="text" name="search" class="form-control" 
-                       placeholder="제목으로 검색" value="{{ search_query }}">
-                {% if selected_tag %}
-                <input type="hidden" name="tag" value="{{ selected_tag }}">
-                {% endif %}
-                <select name="sort" class="form-select" style="width: auto;">
-                    <option value="date" {% if sort_by == 'date' %}selected{% endif %}>최신순</option>
-                    <option value="likes" {% if sort_by == 'likes' %}selected{% endif %}>좋아요순</option>
-                </select>
-                <button type="submit" class="btn btn-primary">검색</button>
-            </form>
+            <div class="tag-navigation">
+                <a href="{% if search_query %}?search={{ search_query }}{% endif %}"
+                    class="tag-item {% if not selected_tag %}active{% endif %}">
+                    전체보기
+                </a>
+                {% for tag in top_tags %}
+                <a href="?tag={{ tag.tag }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                    class="tag-item {% if tag.tag == selected_tag %}active{% endif %}">
+                    {{ tag.tag }}
+                    <span class="tag-count">{{ tag.count }}</span>
+                </a>
+                {% endfor %}
+            </div>
+
+            <button class="btn scroll-right position-absolute end-0 top-50 translate-middle-y" style="z-index: 1;">
+                <i class="fas fa-chevron-right"></i>
+            </button>
         </div>
-    </div>
 
-    <div class="gallery-grid">
-        {% include "app/_post_list.html" %}
-    </div>
+        <div class="gallery-header d-flex justify-content-between align-items-center mb-4">
+            <h2>{% if gallery_type == 'personal' %}내 갤러리{% else %}공개 갤러리{% endif %}</h2>
 
-    <div class="loading-spinner">
-        <div class="spinner-border" role="status">
-            <span class="visually-hidden">Loading...</span>
+            <div class="d-flex gap-3">
+                <form method="get" class="d-flex gap-2">
+                    <input type="text" name="search" class="form-control" placeholder="제목으로 검색"
+                        value="{{ search_query }}">
+                    {% if selected_tag %}
+                    <input type="hidden" name="tag" value="{{ selected_tag }}">
+                    {% endif %}
+                    <select name="sort" class="form-select" style="width: auto;">
+                        <option value="date" {% if sort_by == 'date' %}selected{% endif %}>최신순</option>
+                        <option value="likes" {% if sort_by == 'likes' %}selected{% endif %}>좋아요순</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">검색</button>
+                </form>
+            </div>
         </div>
-    </div>
 
-    {% if has_more %}
-    <div class="sentinel"></div>
-    {% endif %}
+        {% if posts %}
+        <div class="gallery-grid">
+            {% include "app/_post_list.html" %}
+        </div>
+        {% else %}
+        <div class="no-posts-message">
+            게시물이 없습니다.
+        </div>
+        {% endif %}
+
+        <div class="loading-spinner">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+
+        {% if has_more %}
+        <div class="sentinel"></div>
+        {% endif %}
+    </div>
 </div>
 {% endblock content %}
 
@@ -76,5 +130,5 @@
 {% endblock footer %}
 
 {% block js %}
-    <script src="{% static 'js/gallery.js' %}"></script>
+<script src="{% static 'js/gallery.js' %}"></script>
 {% endblock %}
