@@ -602,7 +602,6 @@ def my_gallery(request):
     for post in posts:
         if post.image:
             post.thumb = post.image.replace("uploads/", "resized/thumb_")
-            print(post.thumb)
 
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         html_fragment = render_to_string(
@@ -662,7 +661,6 @@ def public_gallery(request):
     for post in posts:
         if post.image:
             post.thumb = post.image.replace("uploads/", "resized/thumb_")
-            print(post.thumb)
 
     # AJAX 요청 시 HTML 프래그먼트 반환
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
