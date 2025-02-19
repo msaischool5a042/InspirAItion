@@ -56,11 +56,11 @@
                             <i class="fas fa-heart {% if post.is_popular %}text-danger{% endif %} me-1"></i>
                             <span>{{ post.likes_count }}</span>
                             {% if post.is_popular %}
-                                <span class="badge bg-warning text-dark ms-2">인기</span>
+                            <span class="badge bg-warning text-dark ms-2">인기</span>
                             {% endif %}
                         </div>
                     </div>
-                    
+
                 </div>
             </div>
         </div>
@@ -73,9 +73,20 @@
         </button>
         {% endif %}
     </div>
+
+    <!-- 모달 추가: 전체화면 로딩 중 -->
+    <div id="loadingModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index:9999; text-align:center;">
+        <div style="position:absolute; top:50%; left:50%; transform: translate(-50%, -50%); color:#fff; font-size:24px;">
+            더보기 로딩중
+        </div>
+    </div>
+
     <script>
         let page = 2;
         function loadMore() {
+            // 모달 보이기
+            document.getElementById("loadingModal").style.display = "block";
+
             const xhr = new XMLHttpRequest();
             const params = new URLSearchParams(window.location.search);
             params.set('page', page);
@@ -83,30 +94,19 @@
             xhr.open("GET", url, true);
             xhr.setRequestHeader("x-requested-with", "XMLHttpRequest");
             xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    const response = JSON.parse(xhr.responseText);
-                    const posts = response.posts;
-                    const hasMore = response.has_more;
-                    const container = document.getElementById("posts-container");
-                    posts.forEach(function (post) {
-                        const div = document.createElement("div");
-                        div.className = "col-md-4 mb-4 post-item";
-                        div.innerHTML = `
-                            <div class="card">
-                                ${post.image ? `<img src="${post.image}" class="card-img-top" alt="${post.title}">` : ""}
-                                <div class="card-body">
-                                    <h5 class="card-title">${post.title}</h5>
-                                    <p class="card-text">${post.content.length > 100 ? post.content.substring(0, 100) + "..." : post.content}</p>
-                                    <a href="${post.detail_url}" class="btn btn-primary">자세히 보기</a>
-                                </div>
-                            </div>
-                        `;
-                        container.appendChild(div);
-                    });
-                    if (hasMore) {
-                        page++;
-                    } else {
-                        document.getElementById("load-more-btn").style.display = "none";
+                if (xhr.readyState === 4) {
+                    // 모달 숨기기
+                    document.getElementById("loadingModal").style.display = "none";
+                    if (xhr.status === 200) {
+                        const response = JSON.parse(xhr.responseText);
+                        const htmlFragment = response.html;
+                        const container = document.getElementById("posts-container");
+                        container.insertAdjacentHTML('beforeend', htmlFragment);
+                        if (response.has_more) {
+                            page++;
+                        } else {
+                            document.getElementById("load-more-btn").style.display = "none";
+                        }
                     }
                 }
             };

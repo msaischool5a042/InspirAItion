@@ -23,7 +23,9 @@
 
             {% if post.image %}
             <div class="mb-3">
-                <img src="{{ post.image }}" alt="{{ post.title }}" class="img-fluid">
+                <div class="text-center">
+                    <img src="{{ post.image }}" alt="{{ post.title }}" class="img-fluid">
+                </div>
                 {% if post.caption %}
                 <p class="mt-2">{{ post.caption }}</p>
                 {% endif %}
@@ -35,57 +37,57 @@
                 {% else %}
                 <p id="curationText" class="mt-2"><small class="text-muted"></small></p>
                 {% endif %}
-                <!-- 큐레이션 스타일 선택 추가 -->
-                <label for="curationStyleSelect" class="mt-2">큐레이션 스타일:</label>
-                <select id="curationStyleSelect" class="form-select">
-                    <option value="Emotional">Emotional</option>
-                    <option value="Interpretive">Interpretive</option>
-                    <option value="Historical">Historical</option>
-                    <option value="Critical">Critical</option>
-                    <option value="Narrative">Narrative</option>
-                    <option value="Trend">Trend</option>
-                    <option value="Money">Money</option>
-                    <option value="Praise">Praise</option>
-                    <option value="Blind">Blind</option>
-                </select>
-                <!-- 큐레이션 생성 버튼 및 음성 재생, 제어 버튼 추가 -->
-                <button id="generateCurationBtn" class="btn btn-secondary btn-sm">큐레이션 생성</button>
-                <button id="playCaptionBtn" class="btn btn-info btn-sm">음성으로 듣기</button>
-                <button id="pauseAudioBtn" class="btn btn-warning btn-sm" style="display:none;">일시정지</button>
-                <button id="resumeAudioBtn" class="btn btn-success btn-sm" style="display:none;">재생</button>
+                <!-- Modified: 큐레이션 스타일 라벨, select, 생성 및 음성 듣기 버튼을 한 줄에 배치 (모바일 대응: flex-wrap 추가) -->
+                <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                    <label for="curationStyleSelect" class="mb-0">큐레이션 스타일:</label>
+                    <select id="curationStyleSelect" class="form-select form-select-sm" style="width: auto;">
+                        <option value="Emotional">Emotional</option>
+                        <option value="Interpretive">Interpretive</option>
+                        <option value="Historical">Historical</option>
+                        <option value="Critical">Critical</option>
+                        <option value="Narrative">Narrative</option>
+                        <option value="Trend">Trend</option>
+                        <option value="Money">Money</option>
+                        <option value="Praise">Praise</option>
+                        <option value="Blind">Blind</option>
+                    </select>
+                    <button id="generateCurationBtn" class="btn btn-secondary btn-sm">큐레이션 생성</button>
+                    <button id="playCaptionBtn" class="btn btn-info btn-sm">음성으로 듣기</button>
+                    <button id="pauseAudioBtn" class="btn btn-warning btn-sm" style="display:none;">일시정지</button>
+                    <button id="resumeAudioBtn" class="btn btn-success btn-sm" style="display:none;">재생</button>
+                </div>
             </div>
             {% endif %}
 
-            <div class="mt-3">
-                {% if user.is_authenticated and user == post.user %}
-                <a href="{% url 'edit_post' post.id %}" class="btn btn-primary">수정</a>
-                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                    삭제
-                </button>
-                {% endif %}
-                {% if "artwork" in previous_url %}
-                <button type="button" class="btn btn-secondary" onclick="history.back()">이전</button>
-                {% else %}
-                <a href="{% if post.is_public %}{% url 'public_gallery' %}{% else %}{% url 'my_gallery' %}{% endif %}" class="btn btn-secondary">목록</a>
-                {% endif %}
-            </div>
-
-            <div class="d-flex align-items-center mb-3">
-                {% if user.is_authenticated %}
+            <!-- 기존 제어 버튼 및 좋아요 버튼 부분 수정 -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="d-flex flex-wrap gap-2">
+                    {% if user.is_authenticated and user == post.user %}
+                    <a href="{% url 'edit_post' post.id %}" class="btn btn-primary">수정</a>
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">삭제</button>
+                    {% endif %}
+                    {% if "artwork" in previous_url %}
+                    <button type="button" class="btn btn-secondary" onclick="history.back()">이전</button>
+                    {% else %}
+                    <a href="{% if post.is_public %}{% url 'public_gallery' %}{% else %}{% url 'my_gallery' %}{% endif %}" class="btn btn-secondary">목록</a>
+                    {% endif %}
+                </div>
+                <div class="d-flex align-items-center">
+                    {% if user.is_authenticated %}
                     <button id="likeButton" class="btn btn-outline-primary me-2" data-post-id="{{ post.id }}">
                         <i class="fas fa-heart {% if user_liked %}text-danger{% endif %}"></i>
                         좋아요 <span id="likeCount">{{ post.likes_count }}</span>
                     </button>
-                {% else %}
+                    {% else %}
                     <button class="btn btn-outline-secondary me-2" disabled>
                         <i class="fas fa-heart"></i>
                         좋아요 {{ post.likes_count }}
                     </button>
-                {% endif %}
-
-                {% if post.is_popular %}
-                    <span class="badge bg-warning text-dark ms-2">인기</span>
-                {% endif %}
+                    {% endif %}
+                    {% if post.is_popular %}
+                    <span class="badge bg-warning text-dark">인기</span>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
@@ -291,7 +293,7 @@
         }
     });
 
-    document.getElementById('likeButton')?.addEventListener('click', function() {
+    document.getElementById('likeButton')?.addEventListener('click', function () {
         const postId = this.dataset.postId;
         const button = this;
         const icon = button.querySelector('i');
@@ -303,29 +305,29 @@
                 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
             }
         })
-        .then(response => response.json())
-        .then(data => {
-            countSpan.textContent = data.likes_count;
-            if (data.liked) {
-                icon.classList.add('text-danger');
-            } else {
-                icon.classList.remove('txt-danger');
-            }
+            .then(response => response.json())
+            .then(data => {
+                countSpan.textContent = data.likes_count;
+                if (data.liked) {
+                    icon.classList.add('text-danger');
+                } else {
+                    icon.classList.remove('txt-danger');
+                }
 
-            const existingBadge = document.querySelector('.badge.bg-warning');
-            if (data.is_popular && ! existingBadge) {
-                const badge = document.createElement('span');
-                badge.className = 'badge bg-warning text-dark ms-2';
-                badge.textContent = '인기';
-                button.parentNode.appendChild(badge);
-            } else if (!data.is_popular && existingBadge) {
-                existingBadge.remove();
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('좋아요 처리 중 오류가 발생했습니다.')
-        });
+                const existingBadge = document.querySelector('.badge.bg-warning');
+                if (data.is_popular && !existingBadge) {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge bg-warning text-dark ms-2';
+                    badge.textContent = '인기';
+                    button.parentNode.appendChild(badge);
+                } else if (!data.is_popular && existingBadge) {
+                    existingBadge.remove();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('좋아요 처리 중 오류가 발생했습니다.');
+            });
     });
 </script>
 {% endblock content %}

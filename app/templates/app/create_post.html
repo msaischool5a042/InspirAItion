@@ -100,7 +100,14 @@
     document.addEventListener('DOMContentLoaded', function () {
         const postForm = document.getElementById('postForm');
         if (postForm) {
-            postForm.addEventListener('submit', function () {
+            postForm.addEventListener('submit', function (e) {
+                // 추가: 생성된 이미지 URL 존재 여부 검증
+                const imageUrl = document.getElementById('generatedImageUrl').value.trim();
+                if (!imageUrl) {
+                    e.preventDefault();
+                    alert('AI 이미지가 생성되지 않았습니다.');
+                    return;
+                }
                 document.querySelector('#loadingModal div').innerText = '저장중...';
                 showLoadingModal();
             });
