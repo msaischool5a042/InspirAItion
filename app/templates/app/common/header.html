@@ -1,67 +1,69 @@
-<!-- 헤더 포함 -->
 <header>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark" style="z-index: 999999;">
+    <nav class="navbar navbar-expand-lg" style="background-color: var(--nav-bg); color: var(--nav-text); z-index: 999999;">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'home' %}">InspirAItion</a>
+            <a class="navbar-brand text-light" href="{% url 'home' %}">InspirAItion</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <!-- <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">Home</a>
-                    </li> -->
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'about' %}">About</a>
+                        <a class="nav-link text-light" href="{% url 'about' %}">About</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'create_post' %}">AI Playground</a>
+                        <a class="nav-link text-light" href="{% url 'create_post' %}">AI Playground</a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Artwork
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'my_gallery' %}">My Gallery</a></li>
-                            <li><a class="dropdown-item" href="{% url 'public_gallery' %}">Public Gallery</a></li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li><a class="dropdown-item" href="{% url 'fullscreen_gallery' %}">Fullscreen Gallery</a></li>
+                        <ul class="dropdown-menu" style="background-color: var(--dropdown-bg);">
+                            <li><a class="dropdown-item" style="color: var(--dropdown-text);" href="{% url 'my_gallery' %}">My Gallery</a></li>
+                            <li><a class="dropdown-item" style="color: var(--dropdown-text);" href="{% url 'public_gallery' %}">Public Gallery</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" style="color: var(--dropdown-text);" href="{% url 'fullscreen_gallery' %}">Fullscreen Gallery</a></li>
                         </ul>
                     </li>
                 </ul>
 
                 <div class="d-flex align-items-center">
+                    <!-- Theme Switch -->
+                    <div class="theme-switch-wrapper me-3">
+                        <span class="text-light">🌞</span>
+                        <label class="theme-switch mx-2">
+                            <input type="checkbox" id="theme-switch" onchange="toggleTheme()">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="text-light">🌙</span>
+                    </div>
+
                     {% if user.is_authenticated %}
-                    <div class="dropdown w-100 w-md-50"></div>
-                    <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-                        {% if user.profile.profile_image %}
-                        <img src="{{ user.profile.profile_image }}" alt="프로필" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
-                        {% endif %}
-                        <span class="text-white">{{ user.profile.nickname|default:user.username }}</span>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="{% url 'profile_update' %}">프로필 수정</a></li>
-                        <li><a class="dropdown-item" href="{% url 'my_gallery' %}">내 갤러리</a></li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li>
-                            <form action="{% url 'logout' %}" method="post" class="dropdown-item">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-link p-0">로그아웃</button>
-                            </form>
-                        </li>
-                    </ul>
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-light text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+                            {% if user.profile.profile_image %}
+                            <img src="{{ user.profile.profile_image }}" alt="프로필" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                            {% endif %}
+                            <span>{{ user.profile.nickname|default:user.username }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" style="background-color: var(--dropdown-bg);">
+                            <li><a class="dropdown-item" style="color: var(--dropdown-text);" href="{% url 'profile_update' %}">프로필 수정</a></li>
+                            <li><a class="dropdown-item" style="color: var(--dropdown-text);" href="{% url 'my_gallery' %}">내 갤러리</a></li>
+                            <li><hr class="dropdown-divider" style="border-color: var(--border-color);"></li>
+                            <li>
+                                <form action="{% url 'logout' %}" method="post" class="dropdown-item">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-link p-0" style="color: var(--dropdown-text);">로그아웃</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-outline-light me-2">로그인</a>
+                    <a href="{% url 'signup' %}" class="btn btn-primary">회원가입</a>
+                    {% endif %}
                 </div>
-                {% else %}
-                <a href="{% url 'login' %}" class="btn btn-outline-light me-2">로그인</a>
-                <a href="{% url 'signup' %}" class="btn btn-primary">회원가입</a>
-                {% endif %}
             </div>
-        </div>
         </div>
     </nav>
 </header>
