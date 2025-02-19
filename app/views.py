@@ -861,3 +861,12 @@ def like_post(request, pk):
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+def get_tag_image_urls(tags):
+    """각 태그별 가장 좋아요가 많은 이미지 URL을 가져온다."""
+    tag_images = {}
+    for tag_obj in tags:
+        tag = tag_obj.tag
+        most_liked_post = Post.objects.filter(tags__contains=[tag]).order_by('-likes_count').first()
+        tag_images[tag] = most_liked_post.image if most_liked_post else None
+    return tag_images
