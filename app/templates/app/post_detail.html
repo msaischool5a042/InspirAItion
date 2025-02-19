@@ -137,6 +137,8 @@
 </div>
 
 <script>
+    // 추가: postId 변수 선언 (댓글 처리에 사용)
+    const postId = {{ post.id }};
     // 댓글 기능 스크립트 수정: 버튼 클릭 효과 및 로딩 표시 추가
     document.addEventListener('DOMContentLoaded', function () {
         loadComments();
