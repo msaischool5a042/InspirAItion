@@ -1,7 +1,18 @@
+.gallery-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.gallery-container {
+    flex: 1 0 auto;
+    padding-bottom: 2rem;
+}
+
 .tag-navigation {
     display: flex;
     overflow-x: auto;
-    gap: 0.5rem;
+    gap: 1rem;
     padding: 1rem 0;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -13,36 +24,25 @@
 }
 
 .tag-item {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    background-color: #f8f9fa;
-    color: #495057;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-decoration: none;
+    color: inherit;
+    min-width: 100px;
+}
+
+.tag-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 0.5rem;
+}
+
+.tag-name {
     font-size: 0.9rem;
-    white-space: nowrap;
-    transition: all 0.2s ease;
-    border: 1px solid #dee2e6;
-}
-
-.tag-item:hover {
-    background-color: #e9ecef;
-    color: #212529;
-}
-
-.tag-item.active {
-    background-color: #0d6efd;
-    color: white;
-    border-color: #0d6efd;
-}
-
-.tag-count {
-    display: inline-block;
-    background-color: rgba(0,0,0,0.1);
-    padding: 0.2rem 0.5rem;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    margin-left: 0.5rem;
+    text-align: center;
 }
 
 .gallery-grid {
@@ -63,16 +63,10 @@
     transform: translateY(-5px);
 }
 
-.gallery-image-link {
-    text-decoration: none;
-    color: inherit;
-    display: block;
-}
-
 .gallery-image {
     width: 100%;
     height: 0;
-    padding-bottom: 75%; /* 4:3 aspect ratio */
+    padding-bottom: 75%;
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
@@ -101,18 +95,11 @@
     opacity: 0.8;
 }
 
-.likes-badge {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: rgba(0,0,0,0.6);
-    color: white;
-    padding: 0.3rem 0.6rem;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
+.no-posts-message {
+    text-align: center;
+    padding: 3rem 0;
+    font-size: 1.2rem;
+    color: var(--text-secondary);
 }
 
 .loading-spinner {
