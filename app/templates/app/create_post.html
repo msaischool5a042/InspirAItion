@@ -45,6 +45,28 @@
 </div>
 
 <script>
+    function validateForm() {
+        const title = document.querySelector('[name="title"]').value.trim();
+        const content = document.querySelector('[name="content"]').value.trim();
+        const imageUrl = document.getElementById('generatedImageUrl').value.trim();
+
+        let errorMessage = '';
+
+        if (!title) {
+            errorMessage = '제목을 입력해주세요.';
+        } else if (!content) {
+            errorMessage = '내용을 입력해주세요.';
+        } else if (!imageUrl) {
+            errorMessage = 'AI 이미지를 생성해주세요.';
+        }
+
+        if (errorMessage) {
+            alert(errorMessage);
+            return false;
+        }
+        return true;
+    }
+
     function cancelImage() {
         document.getElementById('imagePreview').style.display = 'none';
         document.getElementById('generatedImage').src = '';
@@ -101,15 +123,15 @@
         const postForm = document.getElementById('postForm');
         if (postForm) {
             postForm.addEventListener('submit', function (e) {
-                // 추가: 생성된 이미지 URL 존재 여부 검증
-                const imageUrl = document.getElementById('generatedImageUrl').value.trim();
-                if (!imageUrl) {
-                    e.preventDefault();
-                    alert('AI 이미지가 생성되지 않았습니다.');
+                e.preventDefault();
+                
+                if (!validateForm()) {
                     return;
                 }
+
                 document.querySelector('#loadingModal div').innerText = '저장중...';
                 showLoadingModal();
+                this.submit();
             });
         }
     });
