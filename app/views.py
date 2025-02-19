@@ -12,6 +12,7 @@ import requests
 import uuid
 import json
 from datetime import datetime
+from django.db.models import Count
 
 from util.common.azure_computer_vision import get_image_caption_and_tags
 from util.common.azure_speech import synthesize_text_to_speech
@@ -540,10 +541,19 @@ def delete_post(request: HttpRequest, pk: int) -> HttpResponse:
 def my_gallery(request):
     search_query = request.GET.get("search", "")
     tag_filter = request.GET.get("tag", "")
-    posts_qs = Post.objects.filter(user=request.user)
+    sort_by = request.GET.get("sort", "likes")
+
+    posts_qs = Post.objects.filter(user=request.user).annotate(like_count=Count('likes'))
+    
     if search_query:
         posts_qs = posts_qs.filter(title__icontains=search_query)
-    # 태그 필터 적용: __contains 대신 파이썬 리스트 필터링 수행
+
+    if sort_by == "likes":
+        posts_qs = posts_qs.order_by('-like_count', '-date_posted')
+    else:
+        posts_qs = posts_qs.order_by('-date_posted')
+
+    
     if tag_filter:
         all_posts = list(posts_qs.order_by("-date_posted"))
         posts_list = [
@@ -565,7 +575,7 @@ def my_gallery(request):
                 "id": post.id,
                 "title": post.title,
                 "image": post.image,
-                "detail_url": f"/app/posts/{post.id}/",  # 변경됨: /post/ -> /app/posts/
+                "detail_url": f"/app/posts/{post.id}/",
                 "content": post.content,
             }
             for post in posts
@@ -582,7 +592,8 @@ def my_gallery(request):
             "search_query": search_query,
             "top_tags": top_tags,
             "selected_tag": tag_filter,
-            "has_more": has_more,  # 추가
+            "has_more": has_more,
+            "sort_by": sort_by
         },
     )
 
@@ -590,15 +601,21 @@ def my_gallery(request):
 def public_gallery(request):
     search_query = request.GET.get("search", "")
     tag_filter = request.GET.get("tag", "")
+    sort_by = request.GET.get("sort", "likes")
     page = int(request.GET.get("page", "1"))
     post_cnt = 9
     offset = (page - 1) * post_cnt
 
-    posts_qs = Post.objects.filter(is_public=True)
+    posts_qs = Post.objects.filter(is_public=True).annotate(like_count=Count('likes'))
     if search_query:
         posts_qs = posts_qs.filter(title__icontains=search_query)
 
     total_count = posts_qs.count()
+    
+    if sort_by == "likes":
+        posts_qs = posts_qs.order_by('-like_count', '-date_posted')
+    else:
+        posts_qs = posts_qs.order_by('-date_posted')
 
     if tag_filter:
         # __contains 대신 파이썬 리스트 필터링 수행
@@ -636,7 +653,8 @@ def public_gallery(request):
             "search_query": search_query,
             "top_tags": top_tags,
             "selected_tag": tag_filter,
-            "has_more": has_more,  # 추가
+            "has_more": has_more,
+            "sort_by": sort_by
         },
     )
 

@@ -13,11 +13,15 @@
     <h2>{% if gallery_type == 'personal' %}내 갤러리{% else %}공개 갤러리{% endif %}</h2>
 
     <form method="get" class="mb-4">
-        <div class="input-group">
+        <div class="d-flex gap-2">
             <input type="text" name="search" class="form-control" placeholder="제목으로 검색" value="{{ search_query }}">
             {% if selected_tag %}
             <input type="hidden" name="tag" value="{{ selected_tag }}">
             {% endif %}
+            <select name="sort" class="form-select" style="max-width: 150px;">
+                <option value="date" {% if sort_by == 'date' %}selected{% endif %}>최신순</option>
+                <option value="likes" {% if sort_by == 'likes' %}selected{% endif %}>좋아요순</option>
+            </select>
             <button type="submit" class="btn btn-primary">검색</button>
         </div>
         <div class="tag-buttons mt-2">
@@ -31,6 +35,8 @@
                 태그 초기화
             </a>
             {% endif %}
+        </div>
+            </div>
         </div>
     </form>
 
