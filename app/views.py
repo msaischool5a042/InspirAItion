@@ -13,6 +13,8 @@ import uuid
 import json
 from datetime import datetime
 from django.db.models import Count
+from io import BytesIO
+from PIL import Image
 
 from util.common.azure_computer_vision import get_image_caption_and_tags
 from util.common.azure_speech import synthesize_text_to_speech
@@ -166,26 +168,46 @@ def generate_prompt_with_gpt4o(user_input):
 
 
 def save_image_to_blob(image_url, prompt, user_id):
-    """이미지를 Azure Blob Storage에 저장"""
+    """이미지를 Azure Blob Storage에 저장하고, width 500으로 리사이즈한 썸네일을 'resized' 컨테이너에 저장"""
     try:
         response = requests.get(image_url, stream=True)
         response.raise_for_status()
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         unique_id = str(uuid.uuid4())[:8]
-
         sanitised_prompt = re.sub(r'[<>:"/\\|?*]', "", prompt[:20]).strip()
         filename = f"user_{user_id}_{timestamp}_{unique_id}_{sanitised_prompt}.png"
 
         blob_service_client = BlobServiceClient.from_connection_string(
             settings.AZURE_CONNECTION_STRING
         )
+
+        # 원본 이미지 업로드 (기존 container 사용)
         blob_client = blob_service_client.get_blob_client(
             container=settings.CONTAINER_NAME, blob=filename
         )
-
         blob_client.upload_blob(response.content, overwrite=True)
-        logging.info(f"이미지가 Blob Storage에 저장되었습니다: {filename}")
+        logging.info(f"원본 이미지가 Blob Storage에 저장되었습니다: {filename}")
+
+        # Pillow를 이용해 이미지 리사이즈 및 썸네일 생성 (width=300)
+        image = Image.open(BytesIO(response.content))
+        orig_width, orig_height = image.size
+        new_width = 500
+        new_height = int(orig_height * (new_width / orig_width))
+        image.thumbnail((new_width, new_height))
+        thumb_buffer = BytesIO()
+        image.save(thumb_buffer, format="PNG")
+        thumb_buffer.seek(0)
+
+        # "resized" 컨테이너에 썸네일 업로드, filename 앞에 "thumb_" 접두어 추가
+        thumb_filename = "thumb_" + filename
+        thumb_blob_client = blob_service_client.get_blob_client(
+            container="resized", blob=thumb_filename
+        )
+        thumb_blob_client.upload_blob(thumb_buffer.read(), overwrite=True)
+        logging.info(f"썸네일 이미지가 Blob Storage에 저장되었습니다: {thumb_filename}")
+
+        # 원본 이미지 URL 반환 (원하는 경우 썸네일 URL도 함께 반환 가능)
         return blob_client.url
 
     except Exception as e:
@@ -549,17 +571,18 @@ def my_gallery(request):
     tag_filter = request.GET.get("tag", "")
     sort_by = request.GET.get("sort", "date")
 
-    posts_qs = Post.objects.filter(user=request.user).annotate(like_count=Count('likes'))
-    
+    posts_qs = Post.objects.filter(user=request.user).annotate(
+        like_count=Count("likes")
+    )
+
     if search_query:
         posts_qs = posts_qs.filter(title__icontains=search_query)
 
     if sort_by == "likes":
-        posts_qs = posts_qs.order_by('-like_count', '-date_posted')
+        posts_qs = posts_qs.order_by("-like_count", "-date_posted")
     else:
-        posts_qs = posts_qs.order_by('-date_posted')
+        posts_qs = posts_qs.order_by("-date_posted")
 
-    
     if tag_filter:
         all_posts = list(posts_qs)
         posts_list = [
@@ -575,6 +598,12 @@ def my_gallery(request):
     posts = posts_list[offset : offset + post_cnt]
     has_more = (offset + post_cnt) < total_count
 
+    # posts의 image 텍스트 중 uploads/ 부분을 resized/thumb_ 로 대체한 thumb 값을 추가
+    for post in posts:
+        if post.image:
+            post.thumb = post.image.replace("uploads/", "resized/thumb_")
+            print(post.thumb)
+
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         html_fragment = render_to_string(
             "app/_post_list.html", {"posts": posts}, request=request
@@ -582,6 +611,7 @@ def my_gallery(request):
         return JsonResponse({"html": html_fragment, "has_more": has_more})
 
     top_tags = TagUsage.objects.order_by("-count")[:10]
+
     return render(
         request,
         "app/gallery.html",
@@ -592,7 +622,7 @@ def my_gallery(request):
             "top_tags": top_tags,
             "selected_tag": tag_filter,
             "has_more": has_more,
-            "sort_by": sort_by
+            "sort_by": sort_by,
         },
     )
 
@@ -605,16 +635,16 @@ def public_gallery(request):
     post_cnt = 9
     offset = (page - 1) * post_cnt
 
-    posts_qs = Post.objects.filter(is_public=True).annotate(like_count=Count('likes'))
+    posts_qs = Post.objects.filter(is_public=True).annotate(like_count=Count("likes"))
     if search_query:
         posts_qs = posts_qs.filter(title__icontains=search_query)
 
     total_count = posts_qs.count()
-    
+
     if sort_by == "likes":
-        posts_qs = posts_qs.order_by('-like_count', '-date_posted')
+        posts_qs = posts_qs.order_by("-like_count", "-date_posted")
     else:
-        posts_qs = posts_qs.order_by('-date_posted')
+        posts_qs = posts_qs.order_by("-date_posted")
 
     if tag_filter:
         all_posts = list(posts_qs)
@@ -628,6 +658,12 @@ def public_gallery(request):
 
     has_more = (offset + post_cnt) < total_count
 
+    # 추가: 각 포스트의 image 필드에 uploads/를 resized/thumb_로 대체하여 썸네일 URL을 post.thumb에 저장
+    for post in posts:
+        if post.image:
+            post.thumb = post.image.replace("uploads/", "resized/thumb_")
+            print(post.thumb)
+
     # AJAX 요청 시 HTML 프래그먼트 반환
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         html_fragment = render_to_string(
@@ -636,6 +672,7 @@ def public_gallery(request):
         return JsonResponse({"html": html_fragment, "has_more": has_more})
 
     top_tags = TagUsage.objects.order_by("-count")[:10]
+
     return render(
         request,
         "app/gallery.html",
@@ -646,7 +683,7 @@ def public_gallery(request):
             "top_tags": top_tags,
             "selected_tag": tag_filter,
             "has_more": has_more,
-            "sort_by": sort_by
+            "sort_by": sort_by,
         },
     )
 
