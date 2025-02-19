@@ -23,7 +23,7 @@
         <div class="tag-navigation">
             <a href="{% if search_query %}?search={{ search_query }}{% endif %}" 
                class="tag-item {% if not selected_tag %}active{% endif %}">
-                전체보기<span class="tag-count">{{ total_posts }}</span>
+                전체보기
             </a>
             {% for tag in top_tags %}
             <a href="?tag={{ tag.tag }}{% if search_query %}&search={{ search_query }}{% endif %}" 
