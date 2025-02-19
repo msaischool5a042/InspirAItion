@@ -1,22 +1,19 @@
-<!-- Header Start -->
 {% extends "app/common/frame.html" %}
 {% load static %}
-{% block title %} New Home {% endblock title %}
+{% block title %} Gallery - InspirAItion {% endblock title %}
+
 {% block header %}
 {% include "app/common/header.html" %}
 {% endblock header %}
-<!-- Header End -->
 
 {% block css %}
     <link rel="stylesheet" href="{% static 'css/gallery.css' %}">
 {% endblock %}
 
 {% block content %}
-<hr class="featurette-divider">
-
-<div class="container-fluid gallery-container">
+<div class="container-fluid gallery-container py-5">
     <div class="tag-section position-relative my-4">
-        <button class="btn btn-light scroll-left position-absolute start-0 top-50 translate-middle-y" style="z-index: 1;">
+        <button class="btn scroll-left position-absolute start-0 top-50 translate-middle-y" style="z-index: 1;">
             <i class="fas fa-chevron-left"></i>
         </button>
         
@@ -28,12 +25,13 @@
             {% for tag in top_tags %}
             <a href="?tag={{ tag.tag }}{% if search_query %}&search={{ search_query }}{% endif %}" 
                class="tag-item {% if tag.tag == selected_tag %}active{% endif %}">
-                {{ tag.tag }}<span class="tag-count">{{ tag.count }}</span>
+                {{ tag.tag }}
+                <span class="tag-count">{{ tag.count }}</span>
             </a>
             {% endfor %}
         </div>
         
-        <button class="btn btn-light scroll-right position-absolute end-0 top-50 translate-middle-y" style="z-index: 1;">
+        <button class="btn scroll-right position-absolute end-0 top-50 translate-middle-y" style="z-index: 1;">
             <i class="fas fa-chevron-right"></i>
         </button>
     </div>
@@ -62,7 +60,7 @@
     </div>
 
     <div class="loading-spinner">
-        <div class="spinner-border text-primary" role="status">
+        <div class="spinner-border" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
     </div>
@@ -73,11 +71,9 @@
 </div>
 {% endblock content %}
 
-<!-- Footer Start -->
 {% block footer %}
 {% include "app/common/footer.html" %}
 {% endblock footer %}
-<!-- Footer End -->
 
 {% block js %}
     <script src="{% static 'js/gallery.js' %}"></script>

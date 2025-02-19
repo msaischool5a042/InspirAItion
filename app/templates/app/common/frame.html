@@ -12,19 +12,19 @@
     {% bootstrap_javascript %}
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
     {% block css %}{% endblock %}
 </head>
 
 <body>
     {% block header %}{% endblock %}
 
-    <!-- <main class="container my-4"> -->
     {% block content %}{% endblock %}
-    <!-- </main> -->
 
     {% block footer %}{% endblock %}
 
     {% block js %}{% endblock %}
+    <script src="{% static 'js/theme.js' %}"></script>
 </body>
 
 </html>

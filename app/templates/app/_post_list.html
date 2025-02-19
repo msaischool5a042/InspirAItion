@@ -1,12 +1,12 @@
 {% for post in posts %}
 <div class="gallery-item">
-    <a href="{% url 'post_detail' post.id %}">
-        <div class="gallery-image" style="background-image: url({% if post.thumb %}{{ post.thumb }}{% else %}{{ post.image }}{% endif %})">
+    <a href="{% url 'post_detail' post.id %}" class="text-decoration-none">
+        <div class="gallery-image" style="background-image: url({{ post.image }})">
         </div>
         <div class="gallery-info">
-            <h5 class="gallery-title">{{ post.title }}</h5>
-            <p class="gallery-text">{{ post.content|truncatechars:100 }}</p>
-            <p class="gallery-author">by {{ post.author_nickname }}</p>
+            <h5 class="gallery-title mb-2">{{ post.title }}</h5>
+            <p class="gallery-text mb-2">{{ post.content|truncatechars:100 }}</p>
+            <p class="gallery-author mb-0">by {{ post.author_nickname }}</p>
         </div>
         <div class="likes-badge">
             <i class="fas fa-heart {% if post.is_popular %}text-danger{% endif %}"></i>
@@ -16,5 +16,9 @@
             {% endif %}
         </div>
     </a>
+</div>
+{% empty %}
+<div class="col-12 text-center py-5">
+    <p class="h5">게시물이 없습니다.</p>
 </div>
 {% endfor %}
