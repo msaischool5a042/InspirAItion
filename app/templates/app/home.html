@@ -1,196 +1,70 @@
-<!-- Header Start -->
 {% extends "app/common/frame.html" %}
 {% load static %}
-{% block title %} New Home {% endblock title %}
+{% block title %} InspirAItion {% endblock title %}
 {% block header %}
 {% include "app/common/header.html" %}
 {% endblock header %}
-<!-- Header End -->
 
 {% block css %}
-<style>
-    /* GLOBAL STYLES
--------------------------------------------------- */
-    /* Padding below the footer and lighter body text */
-
-    /* body {
-        padding-top: 3rem;
-        padding-bottom: 3rem;
-        color: rgb(var(--bs-tertiary-color-rgb));
-    } */
-
-
-    /* CUSTOMIZE THE CAROUSEL
--------------------------------------------------- */
-
-    /* Carousel base class */
-    .carousel {
-        margin-bottom: 4rem;
-    }
-
-    /* Since positioning the image, we need to help out the caption */
-    /* 원래 내용.carousel-caption {
-        bottom: 3rem;
-        z-index: 10;
-    } */
-
-    .carousel-caption {
-        position: absolute;
-        font-weight: 700;
-        /* 값이 클수록 볼드 효과 */
-        bottom: 3rem;
-        z-index: 1000;
-        /* 변경 */
-        color: white;
-        /* 기본적으로 글씨가 보이도록 설정 */
-    }
-
-    /* 여기에 추가 */
-    .carousel-caption h1 {
-        font-weight: 800;
-        color: #f8f9fa;
-        text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.8);
-    }
-
-
-    .carousel-caption p {
-        font-size: 1.2rem;
-        font-weight: 400;
-        color: #e0e0e0;
-        /* text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.6); */
-    }
-
-
-    /* 버튼의 z-index 높이기 */
-    .carousel-control-prev,
-    .carousel-control-next {
-        z-index: 1100;
-        /* .carousel-caption(10)보다 높게 설정 */
-        opacity: 1 !important;
-        /* 버튼이 보이도록 강제 설정 */
-        font-weight: bold;
-    }
-
-    .carousel-control-prev-icon,
-    .carousel-control-next-icon {
-        filter: invert(1);
-        /* 버튼 색 반전 (검은색) */
-        font-weight: bold;
-    }
-
-    /* 버튼 텍스트에 bold 효과 추가 */
-    .carousel-control-prev .visually-hidden,
-    .carousel-control-next .visually-hidden {
-        font-weight: bold;
-    }
-
-    /* Declare heights because of positioning of img element */
-    .carousel-item {
-        height: 32rem;
-    }
-
-
-    /* MARKETING CONTENT
--------------------------------------------------- */
-
-    /* Center align the text within the three columns below the carousel */
-    .marketing .col-lg-4 {
-        margin-bottom: 1.5rem;
-        text-align: center;
-    }
-
-    /* rtl:begin:ignore */
-    .marketing .col-lg-4 p {
-        margin-right: .75rem;
-        margin-left: .75rem;
-    }
-
-    /* rtl:end:ignore */
-
-
-    /* Featurettes
-------------------------- */
-
-    .featurette-divider {
-        margin: 5rem 0;
-        /* Space out the Bootstrap <hr> more */
-    }
-
-    /* Thin out the marketing headings */
-    /* rtl:begin:remove */
-    .featurette-heading {
-        letter-spacing: -.05rem;
-    }
-
-    /* rtl:end:remove */
-
-    /* RESPONSIVE CSS
--------------------------------------------------- */
-
-    @media (min-width: 40em) {
-
-        /* Bump up size of carousel content */
-        .carousel-caption p {
-            margin-bottom: 1.25rem;
-            font-size: 1.25rem;
-            line-height: 1.4;
-        }
-
-        .featurette-heading {
-            font-size: 50px;
-        }
-    }
-
-    @media (min-width: 62em) {
-        .featurette-heading {
-            margin-top: 7rem;
-        }
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
 {% endblock css %}
 
 
 {% block content %}
-<div id="myCarousel" class="carousel slide mb-6" data-bs-ride="carousel">
-    <div class="carousel-indicators">
-        <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-        <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
-        <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+<section class="hero-section">
+    <h1 class="hero-title">Smarter creativity, faster designs</h1>
+    <p class="hero-subtitle">Everything you need, from stock images and videos to AI-powered design tools</p>
+    
+    <div class="search-container">
+        {% csrf_token %}
+        <div class="search-bar">
+            <div class="search-type">AI image</div>
+            <input type="text" id="searchInput" class="search-input" placeholder="A giant cat resting on top of a lit skyscraper, realistic">
+            <button type="button" id="generateBtn" class="generate-btn">
+                <i class="fas fa-wand-magic-sparkles"></i>
+                generate
+            </button>
+        </div>
     </div>
+</section>
+
+<div style="margin-top: -2rem"> 
+    <div id="myCarousel" class="carousel slide mb-6" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+        </div>
     <div class="carousel-inner">
         <div class="carousel-item active">
-            <!--
-            <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="xMidYMid slice" focusable="false">
-                <rect width="100%" height="100%" fill="var(--bs-secondary-color)" />
-            </svg>
-            -->
-            <div class="bd-placeholder-img" style="width: 100%; height: 100vh; background-image: url('{% static 'img/hero_1.jpg' %}'); background-size: cover; background-position: center;"></div>
-            <!--min-height: 50vh; max-height: 80vh;-->
+            <div class="bd-placeholder-img"
+                style="width: 100%; height: 100vh; background-image: url('{% static 'img/hero_1.jpg' %}'); background-size: cover; background-position: center;">
+            </div>
+
             <div class="container">
                 <div class="carousel-caption text-start">
                     <h1 class="fw-bolder">Your Ideas & AI's Insight, Boundless Creativity!</h1>
-                    <br class="small-break"> <!-- 줄바꿈 간격 줄이기 -->
+                    <br class="small-break">
                     <p class="text-dark">You can easily create images using our AI agentic capabilities to fully</p>
                     <p class="text-dark">express your unique personality. Transform your everyday</p>
                     <p class="text-dark">moments into the style of famous artists and express your</p>
                     <p class="text-dark">daily emotions through art!</p>
                     <br>
-                    <p><a class="btn btn-lg btn-primary" href="#" onclick="alert('회원가입 페이지로 연결할 예정입니다!')">Sign up today</a></p>
+                    <p><a class="btn btn-lg btn-primary" href="#" onclick="alert('회원가입 페이지로 연결할 예정입니다!')">Sign up
+                            today</a></p>
                 </div>
             </div>
         </div>
 
         <div class="carousel-item">
-            <!--
-            <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="xMidYMid slice" focusable="false">
-                <rect width="100%" height="100%" fill="var(--bs-secondary-color)" />
-            </svg>
-            -->
-            <div class="bd-placeholder-img" style="width: 100%; height: 100vh; background-image: url('{% static 'img/hero_3.jpg' %}'); background-size: cover; background-position: center; 40%"></div>
+
+            <div class="bd-placeholder-img"
+                style="width: 100%; height: 100vh; background-image: url('{% static 'img/hero_3.jpg' %}'); background-size: cover; background-position: center; 40%">
+            </div>
             <div class="container">
                 <div class="carousel-caption">
                     <h1 class="fw-bolder">Community Feature</h1>
-                    <br class="small-break"> <!-- 줄바꿈 간격 줄이기 -->
+                    <br class="small-break">
                     <p>Showcase and share the images you've created, and let's exchange ideas and feedback.</p>
                     <p>Let's build a community where creativity and empathy thrive together!</p>
                     <br>
@@ -200,23 +74,21 @@
         </div>
 
         <div class="carousel-item">
-            <!--
-            <svg class="bd-placeholder-img" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="xMidYMid slice" focusable="false">
-                <rect width="100%" height="100%" fill="var(--bs-secondary-color)" />
-            </svg>
-            -->
-            <div class="bd-placeholder-img" style="width: 100%; height: 100vh; background-image: url('{% static 'img/hero_2.jpg' %}'); background-size: cover; background-position: bottom;">
+
+            <div class="bd-placeholder-img"
+                style="width: 100%; height: 100vh; background-image: url('{% static 'img/hero_2.jpg' %}'); background-size: cover; background-position: bottom;">
             </div>
             <div class="container">
                 <div class="carousel-caption text-end">
                     <h1 class="fw-bolder">Virtual Gallery Exhibition</h1>
-                    <br class="small-break"> <!-- 줄바꿈 간격 줄이기 -->
+                    <br class="small-break">
                     <p class="text-dark">Do you have a favorite image?</p>
                     <p class="text-dark">Want to organize them by theme?</p>
                     <p class="text-dark">Host your own virtual exhibition!</p>
                     <br>
                     <p class="text-end">
-                        <a class="btn btn-primary me-4" href="{% url 'fullscreen_gallery' %}"> Enter Exhibition &raquo;</a>
+                        <a class="btn btn-primary me-4" href="{% url 'fullscreen_gallery' %}"> Enter Exhibition
+                            &raquo;</a>
                     </p>
                 </div>
             </div>
@@ -234,26 +106,29 @@
 </div>
 
 <div class="container">
-    <!-- Marketing messaging and featurettes
-    ================================================== -->
-    <!-- Wrap the rest of the page in another container to center all the content. -->
+
     <hr class="featurette-divider">
 
-    <h1 class="fw-bolder" style="display: inline-block; border-bottom: 1px solid black; padding-bottom: 8px; margin-left: 20px; margin-bottom: 20px;">
+    <h1 class="fw-bolder"
+        style="display: inline-block; border-bottom: 1px solid black; padding-bottom: 8px; margin-left: 20px; margin-bottom: 20px;">
         EVENTS
     </h1>
 
     <div class="row featurette align-items-start">
         <div class="col-md-7 d-flex flex-column justify-content-center">
             <h2 class="featurette-heading fw-bolder lh-1"> 1st Event │
-                <span class="text-body-secondary" style="text-align: left; display: block; margin-top: 0.5em;">Create ART Goods with OO Museum</span>
+                <span class="text-body-secondary" style="text-align: left; display: block; margin-top: 0.5em;">Create
+                    ART Goods with OO Museum</span>
             </h2>
             <br>
-            <p class="lead" style="font-weight: bold;">Experience the fusion of our traditional culture and AI! Show us your unique designs that highlight sustainability, storytelling, and more!</p>
+            <p class="lead" style="font-weight: bold;">Experience the fusion of our traditional culture and AI! Show us
+                your unique designs that highlight sustainability, storytelling, and more!</p>
             <br>
             <p style="padding-left: 20px;">ℹ️ For more artworks, please visit the public gallery.</p>
         </div>
-        <div class="bd-placeholder-img bd-placeholder-img-lg featurette-image img-fluid mx-auto" style="width: 30vw; height: 30vw; background-image: url('{% static 'img/event_1.png' %}'); background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; color: var(--bs-secondary-color); font-size: 3vw;" title="Goods_Tumbler with Ilwolobongdo Pattern">
+        <div class="bd-placeholder-img bd-placeholder-img-lg featurette-image img-fluid mx-auto"
+            style="width: 30vw; height: 30vw; background-image: url('{% static 'img/event_1.png' %}'); background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; color: var(--bs-secondary-color); font-size: 3vw;"
+            title="Goods_Tumbler with Ilwolobongdo Pattern">
         </div>
     </div>
 
@@ -263,14 +138,19 @@
         <div class="col-md-7 order-md-2 d-flex flex-column justify-content-center">
 
             <h2 class="featurette-heading fw-bolder lh-1"> 2nd Event │
-                <span class="text-body-secondary" style="text-align: left; display: block; margin-top: 0.5em;">Historical Impact and Global Events</span>
+                <span class="text-body-secondary"
+                    style="text-align: left; display: block; margin-top: 0.5em;">Historical Impact and Global
+                    Events</span>
             </h2>
             <br>
-            <p class="lead" style="font-weight: bold;">Experience Historical Figures, Global Events, and Visualizing Histor: Impact, Legacy, and Representation with AI!</p>
+            <p class="lead" style="font-weight: bold;">Experience Historical Figures, Global Events, and Visualizing
+                Histor: Impact, Legacy, and Representation with AI!</p>
             <br>
             <p style="padding-left: 20px;">ℹ️ For more artworks, please visit the public gallery.</p>
         </div>
-        <div class="bd-placeholder-img bd-placeholder-img-lg featurette-image img-fluid mx-auto" style="width: 30vw; height: 30vw; background-image: url('{% static 'img/event_2.png' %}'); background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; color: var(--bs-secondary-color); font-size: 3vw;" title="Apollo 11 Moon Landing">
+        <div class="bd-placeholder-img bd-placeholder-img-lg featurette-image img-fluid mx-auto"
+            style="width: 30vw; height: 30vw; background-image: url('{% static 'img/event_2.png' %}'); background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; color: var(--bs-secondary-color); font-size: 3vw;"
+            title="Apollo 11 Moon Landing">
         </div>
     </div>
 
@@ -279,28 +159,33 @@
     <div class="row featurette align-items-start">
         <div class="col-md-7 d-flex flex-column justify-content-center">
             <h2 class="featurette-heading fw-bolder lh-1"> 3rd Event │
-                <span class="text-body-secondary" style="text-align: left; display: block; margin-top: 0.5em;"> Diverse Visual Representations </span>
+                <span class="text-body-secondary" style="text-align: left; display: block; margin-top: 0.5em;"> Diverse
+                    Visual Representations </span>
             </h2>
             <br>
-            <p class="lead" style="font-weight: bold;">Explore creative and practical examples of utilizing AI across boundaries, including: </p>
+            <p class="lead" style="font-weight: bold;">Explore creative and practical examples of utilizing AI across
+                boundaries, including: </p>
             <p> - Serene Landscapes │ Landmarks</p>
             <p> - Musical Note Visualization │ Creating a Tech Startup Logo</p>
             <p> - Designing an Emblem │ PPT Slide │ Line Diagrams, etc. </p>
             <br>
             <p style="padding-left: 20px;">ℹ️ For more artworks, please visit the public gallery.</p>
         </div>
-        <div class="bd-placeholder-img bd-placeholder-img-lg featurette-image img-fluid mx-auto" style="width: 30vw; height: 30vw; background-image: url('{% static 'img/event_3.png' %}'); background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; color: var(--bs-secondary-color); font-size: 3vw;" title="Recreation of Malcolm X">
+        <div class="bd-placeholder-img bd-placeholder-img-lg featurette-image img-fluid mx-auto"
+            style="width: 30vw; height: 30vw; background-image: url('{% static 'img/event_3.png' %}'); background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; color: var(--bs-secondary-color); font-size: 3vw;"
+            title="Recreation of Malcolm X">
         </div>
     </div>
 
     <hr class="featurette-divider">
 
-    <!-- START THE FEATURETTES -->
-</div><!-- /.container -->
+</div>
 {% endblock content %}
 
-<!-- Footer Start -->
+{% block js %}
+<script src="{% static 'js/home.js' %}"></script>
+{% endblock %}
+
 {% block footer %}
 {% include "app/common/footer.html" %}
 {% endblock footer %}
-<!-- Footer End -->
