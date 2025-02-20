@@ -1,3 +1,4 @@
+from collections import namedtuple
 import os
 import re
 import logging
@@ -571,6 +572,20 @@ def my_gallery(request):
     tag_filter = request.GET.get("tag", "")
     sort_by = request.GET.get("sort", "date")
 
+    user_posts = Post.objects.filter(user=request.user)
+
+    user_tag_counts = {}
+    for post in user_posts:
+        if post.tags:
+            for tag in post.tags:
+                user_tag_counts[tag] = user_tag_counts.get(tag, 0) + 1
+
+    UserTag = namedtuple('UserTag', ['tag', 'count'])
+    top_tags = [
+        UserTag(tag=tag, count=count)
+        for tag, count in sorted(user_tag_counts.items(), key=lambda x: x[1], reverse=True)
+    ][:10]
+
     posts_qs = Post.objects.filter(user=request.user).annotate(
         like_count=Count("likes")
     )
@@ -584,10 +599,13 @@ def my_gallery(request):
         posts_qs = posts_qs.order_by("-date_posted")
 
     if tag_filter:
-        all_posts = list(posts_qs)
-        posts_list = [
-            post for post in all_posts if post.tags and tag_filter in post.tags
-        ]
+        if tag_filter in user_tag_counts:
+            posts_list = [
+                post for post in posts_qs
+                if post.tags and tag_filter in post.tags
+            ]
+        else:
+            posts_list = []
     else:
         posts_list = list(posts_qs)
 
@@ -598,7 +616,6 @@ def my_gallery(request):
     posts = posts_list[offset : offset + post_cnt]
     has_more = (offset + post_cnt) < total_count
 
-    # posts의 image 텍스트 중 uploads/ 부분을 resized/thumb_ 로 대체한 thumb 값을 추가
     for post in posts:
         if post.image:
             post.thumb = post.image.replace("uploads/", "resized/thumb_")
@@ -608,8 +625,6 @@ def my_gallery(request):
             "app/_post_list.html", {"posts": posts}, request=request
         )
         return JsonResponse({"html": html_fragment, "has_more": has_more})
-
-    top_tags = TagUsage.objects.order_by("-count")[:10]
 
     return render(
         request,
@@ -670,6 +685,7 @@ def public_gallery(request):
         return JsonResponse({"html": html_fragment, "has_more": has_more})
 
     top_tags = TagUsage.objects.order_by("-count")[:10]
+    top_posts = get_top_liked_posts()
 
     return render(
         request,
@@ -682,6 +698,7 @@ def public_gallery(request):
             "selected_tag": tag_filter,
             "has_more": has_more,
             "sort_by": sort_by,
+            "top_posts": top_posts
         },
     )
 
@@ -873,3 +890,8 @@ def get_tag_image_urls(tags):
         )
         tag_images[tag] = most_liked_post.image if most_liked_post else None
     return tag_images
+
+def get_top_liked_posts():
+    return Post.objects.filter(is_public=True).annotate(
+        like_count=Count('likes')
+    ).order_by('-like_count')[:3]
