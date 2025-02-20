@@ -50,6 +50,38 @@ GPT_CLIENT_o3 = AzureOpenAI(
 )
 
 
+def generate_stt_with_gpt4o(user_input, user_style):
+    try:
+        print("GPT4-o1-mini를 사용해 프롬프트를 생성합니다...")
+
+        response = GPT_CLIENT.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": f"""
+                        You are an AI Assistant designed to take user input (user_input), refine it, and transform it according to the user's style (user_style). Follow the guidelines below:
+                        Analyze and characterize the user's style (user_style), then reflect it in the output by constructing well-formed sentences that align with the specific style of the user.
+                        When processing the user's input, avoid overinterpreting or expanding their intended meaning. Ensure the response stays true to what the user is trying to convey.
+                        Construct sentences with appropriate adjustments to the number of sentences used in the user_input. Avoid adding unnecessary detail or reducing content excessively.
+                        Remove any inappropriate expressions, such as profanity, explicit content, or violent language, from the user_input while preserving the overall intent and tone of the message.
+                    """,
+                },
+                {"role": "user", "content": user_input},
+            ],
+        )
+
+        if response.choices and len(response.choices) > 0:
+            return response.choices[0].message.content
+        else:
+            print("응답을 생성하지 못했습니다.")
+            return None
+
+    except Exception as e:
+        print("GPT4-o1-mini 호출 중 예외 발생:", str(e))
+        return None
+
+
 def generate_prompt_with_gpt3o(user_input):
     try:
         print("GPT-3o-mini를 사용해 프롬프트를 생성합니다...")
@@ -580,10 +612,12 @@ def my_gallery(request):
             for tag in post.tags:
                 user_tag_counts[tag] = user_tag_counts.get(tag, 0) + 1
 
-    UserTag = namedtuple('UserTag', ['tag', 'count'])
+    UserTag = namedtuple("UserTag", ["tag", "count"])
     top_tags = [
         UserTag(tag=tag, count=count)
-        for tag, count in sorted(user_tag_counts.items(), key=lambda x: x[1], reverse=True)
+        for tag, count in sorted(
+            user_tag_counts.items(), key=lambda x: x[1], reverse=True
+        )
     ][:10]
 
     posts_qs = Post.objects.filter(user=request.user).annotate(
@@ -601,8 +635,7 @@ def my_gallery(request):
     if tag_filter:
         if tag_filter in user_tag_counts:
             posts_list = [
-                post for post in posts_qs
-                if post.tags and tag_filter in post.tags
+                post for post in posts_qs if post.tags and tag_filter in post.tags
             ]
         else:
             posts_list = []
@@ -698,7 +731,7 @@ def public_gallery(request):
             "selected_tag": tag_filter,
             "has_more": has_more,
             "sort_by": sort_by,
-            "top_posts": top_posts
+            "top_posts": top_posts,
         },
     )
 
@@ -891,7 +924,29 @@ def get_tag_image_urls(tags):
         tag_images[tag] = most_liked_post.image if most_liked_post else None
     return tag_images
 
+
 def get_top_liked_posts():
-    return Post.objects.filter(is_public=True).annotate(
-        like_count=Count('likes')
-    ).order_by('-like_count')[:3]
+    return (
+        Post.objects.filter(is_public=True)
+        .annotate(like_count=Count("likes"))
+        .order_by("-like_count")[:3]
+    )
+
+
+@require_http_methods(["POST"])
+def gpt4o_stt_api(request):
+    """
+    POST 데이터로 전달받은 'text'와 'style'을 인자로 하여
+    generate_stt_with_gpt3o(user_input, user_style)를 호출한 후 결과를 반환.
+    """
+    try:
+        user_input = request.POST.get("text", "").strip()
+        user_style = request.POST.get("style", "default").strip()
+        if not user_input:
+            return JsonResponse({"error": "텍스트가 제공되지 않았습니다."}, status=400)
+        result = generate_stt_with_gpt4o(user_input, user_style)
+        if result is None:
+            return JsonResponse({"error": "AI 처리 실패"}, status=500)
+        return JsonResponse({"result": result})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
