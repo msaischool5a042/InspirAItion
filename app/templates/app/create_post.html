@@ -1,12 +1,12 @@
-<!-- Header Start -->
 {% extends "app/common/frame.html" %}
 {% load static %}
 {% load django_bootstrap5 %}
+
 {% block title %} New Home {% endblock title %}
+
 {% block header %}
 {% include "app/common/header.html" %}
 {% endblock header %}
-<!-- Header End -->
 
 {% block content %}
 <hr class="featurette-divider">
@@ -27,7 +27,6 @@
                     </div>
                 </div>
 
-                <!-- 버튼 수정: onclick 속성에 음성 인식 함수 연결 -->
                 <div class="d-flex gap-2">
                     <button type="button" id="generateSttBtn" class="btn btn-info" onclick="detect_language_and_transcribe()">음성 입력</button>
                     <button type="button" id="generateSttBtnAI" class="btn btn-info" onclick="detect_language_and_transcribe_with_ai()">AI 음성 입력</button>
@@ -40,14 +39,12 @@
     </div>
 </div>
 
-<!-- 추가: 로딩 모달 (post_detail과 동일한 스타일) -->
 <div id="loadingModal" style="position: fixed;top: 0;left: 0;width: 100%;height: 100%;background: rgba(0,0,0,0.5);display: none;z-index: 1050;">
     <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);color: #fff;font-size: 1.5rem;">
         AI 이미지 생성중...
     </div>
 </div>
 
-<!-- 추가: 음성 데이터 수신중 오버레이 -->
 <div id="speechRecognitionModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 1051;">
     <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 1.5rem;">
         음성 데이터 수신중...
@@ -62,7 +59,6 @@
 </div>
 
 <script>
-    // 추가: 음성 인식 및 문자 변환 기능
     function detect_language_and_transcribe() {
         if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
             alert("음성 인식을 지원하지 않는 브라우저입니다.");
@@ -77,7 +73,7 @@
         recognition.start();
         document.getElementById('speechRecognitionModal').style.display = 'block';
 
-        recognition.onresult = function (event) {
+        recognition.onresult = function(event) {
             const transcript = event.results[0][0].transcript;
             let existingText = document.querySelector('[name="prompt"]').value;
             document.querySelector('[name="prompt"]').value = existingText
@@ -85,15 +81,31 @@
                 : transcript;
         };
 
-        recognition.onerror = function (event) {
+        recognition.onerror = function(event) {
             document.getElementById('speechRecognitionModal').style.display = 'none';
             alert("음성 인식 오류: " + event.error);
         };
 
-        recognition.onend = function () {
+        recognition.onend = function() {
             document.getElementById('speechRecognitionModal').style.display = 'none';
         };
     }
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const imageUrl = urlParams.get('image_url');
+        const originalPrompt = urlParams.get('original_prompt');
+
+        if (imageUrl && generatedPrompt) {
+            document.getElementById('imagePreview').style.display = 'block';
+            document.getElementById('generatedImage').src = imageUrl;
+            document.getElementById('generatedImageUrl').value = imageUrl;
+            document.getElementById('generatedPrompt').value = generatedPrompt;
+            
+            document.querySelector('[name="prompt"]').value = originalPrompt;
+        }
+    });
 
     function detect_language_and_transcribe_with_ai() {
         if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -156,6 +168,7 @@
         };
     }
 
+
     function validateForm() {
         const title = document.querySelector('[name="title"]').value.trim();
         const content = document.querySelector('[name="content"]').value.trim();
@@ -185,10 +198,10 @@
         document.getElementById('generatedPrompt').value = '';
     }
 
-    // 추가: 로딩 모달 함수 (post_detail과 동일)
     function showLoadingModal() {
         document.getElementById('loadingModal').style.display = 'block';
     }
+
     function hideLoadingModal() {
         document.getElementById('loadingModal').style.display = 'none';
     }
@@ -200,7 +213,6 @@
             return;
         }
 
-        // 수정: 로딩 모달 표시 (버튼 상태 변경 대신)
         showLoadingModal();
         try {
             const response = await fetch('/app/ai/generate/', {
@@ -229,28 +241,18 @@
         }
     }
 
-    // 새로 추가: form 저장 시 '저장중...' 상태 표시
-    document.addEventListener('DOMContentLoaded', function () {
-        const postForm = document.getElementById('postForm');
-        if (postForm) {
-            postForm.addEventListener('submit', function (e) {
-                e.preventDefault();
-
-                if (!validateForm()) {
-                    return;
-                }
-
-                document.querySelector('#loadingModal div').innerText = '저장중...';
-                showLoadingModal();
-                this.submit();
-            });
+    document.getElementById('postForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (!validateForm()) {
+            return;
         }
+        document.querySelector('#loadingModal div').innerText = '저장중...';
+        showLoadingModal();
+        this.submit();
     });
 </script>
 {% endblock content %}
 
-<!-- Footer Start -->
 {% block footer %}
 {% include "app/common/footer.html" %}
 {% endblock footer %}
-<!-- Footer End -->
