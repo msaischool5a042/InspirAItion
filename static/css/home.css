@@ -1,8 +1,8 @@
 .hero-section {
     position: relative;
-    height: 50vh;
+    height: calc(100vh - 76px - 96px);
     width: 100%;
-    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/static/img/hero-bg.jpg');
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/static/img/home.jpg');
     background-size: cover;
     background-position: center;
     display: flex;
@@ -10,6 +10,7 @@
     justify-content: center;
     align-items: center;
     color: white;
+    margin-bottom: -2rem;
 }
 
 .hero-title {
@@ -135,6 +136,12 @@
     height: 32rem;
 }
 
+.carousel-item .bd-placeholder-img {
+    height: 100% !important;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
 
 .marketing .col-lg-4 {
     margin-bottom: 1.5rem;
@@ -149,7 +156,7 @@
 
 
 .featurette-divider {
-    margin: 5rem 0;
+    margin: 3rem 0;
 }
 
 .featurette-heading {
@@ -173,5 +180,20 @@
 @media (min-width: 62em) {
     .featurette-heading {
         margin-top: 7rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-section,
+    .carousel-inner {
+        height: calc(100vh - 60px - 80px);
+    }
+
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
     }
 }
