@@ -11,9 +11,9 @@
                     <li class="nav-item">
                         <a class="nav-link text-light" href="{% url 'about' %}">About</a>
                     </li>
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <a class="nav-link text-light" href="{% url 'create_post' %}">AI Playground</a>
-                    </li>
+                    </li> -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Artwork
@@ -21,7 +21,9 @@
                         <ul class="dropdown-menu" style="background-color: var(--dropdown-bg);">
                             <li><a class="dropdown-item" style="color: var(--dropdown-text);" href="{% url 'my_gallery' %}">My Gallery</a></li>
                             <li><a class="dropdown-item" style="color: var(--dropdown-text);" href="{% url 'public_gallery' %}">Public Gallery</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item" style="color: var(--dropdown-text);" href="{% url 'fullscreen_gallery' %}">Fullscreen Gallery</a></li>
                         </ul>
                     </li>
@@ -49,7 +51,9 @@
                         <ul class="dropdown-menu dropdown-menu-end" style="background-color: var(--dropdown-bg);">
                             <li><a class="dropdown-item" style="color: var(--dropdown-text);" href="{% url 'profile_update' %}">프로필 수정</a></li>
                             <li><a class="dropdown-item" style="color: var(--dropdown-text);" href="{% url 'my_gallery' %}">내 갤러리</a></li>
-                            <li><hr class="dropdown-divider" style="border-color: var(--border-color);"></li>
+                            <li>
+                                <hr class="dropdown-divider" style="border-color: var(--border-color);">
+                            </li>
                             <li>
                                 <form action="{% url 'logout' %}" method="post" class="dropdown-item">
                                     {% csrf_token %}
