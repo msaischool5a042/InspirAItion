@@ -11,7 +11,7 @@
 
 
 {% block content %}
-<section class="hero-section">
+<section class="hero-section" style="background-image: url('{% static 'img/home.jpg' %}'); background-size: cover; background-position: center;">
     <h1 class="hero-title">Smarter creativity, faster designs</h1>
     <p class="hero-subtitle">Everything you need, from stock images and videos to AI-powered design tools</p>
     
@@ -28,7 +28,7 @@
     </div>
 </section>
 
-<div style="margin-top: -2rem"> 
+<!-- <div style="margin-top: -2rem"> 
     <div id="myCarousel" class="carousel slide mb-6" data-bs-ride="carousel">
         <div class="carousel-indicators">
             <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
@@ -179,7 +179,7 @@
 
     <hr class="featurette-divider">
 
-</div>
+</div> -->
 {% endblock content %}
 
 {% block js %}
