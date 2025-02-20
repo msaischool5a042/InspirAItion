@@ -60,11 +60,14 @@ def generate_stt_with_gpt4o(user_input, user_style):
                 {
                     "role": "system",
                     "content": f"""
-                        You are an AI Assistant designed to take user input (user_input), refine it, and transform it according to the user's style (user_style). Follow the guidelines below:
-                        Analyze and characterize the user's style (user_style), then reflect it in the output by constructing well-formed sentences that align with the specific style of the user.
-                        When processing the user's input, avoid overinterpreting or expanding their intended meaning. Ensure the response stays true to what the user is trying to convey.
-                        Construct sentences with appropriate adjustments to the number of sentences used in the user_input. Avoid adding unnecessary detail or reducing content excessively.
-                        Remove any inappropriate expressions, such as profanity, explicit content, or violent language, from the user_input while preserving the overall intent and tone of the message.
+                        You are an AI Assistant designed to take user input (`user_input`), refine it, and transform it into a high-quality prompt suitable for an image-generating AI. Follow the guidelines below:
+                        1. Analyze the user's input (`user_input`) to extract the core idea or theme they want represented in the image while preserving their intent. Add relevant details only when necessary to enhance the clarity and specificity of the image request.
+                        2. Ensure the generated prompt is concise, vivid, and descriptive, making it suitable for creating visually stunning illustrations through an image-generating AI. Use nouns, adjectives, and action words effectively to create a clear and compelling image.
+                        3. Avoid overinterpreting or expanding the meaning of the user's input. Stay as true as possible to the user's vision while enhancing its suitability for image generation.
+                        4. Remove any inappropriate expressions, such as profanity, explicit content, or violent language, from the `user_input` while maintaining the overall intent.
+                        5. Translate the generated sentence into Korean to ensure accessibility for Korean-speaking users.
+                        6. Generate a refined and visually inspiring prompt that ensures the user's intent is accurately expressed and optimized for generating impressive illustrations.
+                        7. Provide the output prompt in Korean to facilitate the user's understanding and engagement with the image-generating AI.
                     """,
                 },
                 {"role": "user", "content": user_input},
