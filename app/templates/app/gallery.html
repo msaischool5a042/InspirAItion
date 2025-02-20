@@ -22,7 +22,7 @@
                         {% for post in top_posts %}
                         <div class="carousel-item {% if forloop.first %}active{% endif %}">
                             <div class="top-post-card mx-auto">
-                                <img src="{{ post.image }}" class="top-post-image" alt="{{ post.title }}">
+                                <img src="{{ post.thumb }}" class="top-post-image" alt="{{ post.title }}">
                                 <div class="top-post-info">
                                     <h4>{{ post.title }}</h4>
                                     <p class="mb-2">{{ post.content|truncatechars:100 }}</p>
@@ -38,13 +38,11 @@
                         </div>
                         {% endfor %}
                     </div>
-                    <button class="carousel-control-prev" type="button" data-bs-target="#topPostsCarousel"
-                        data-bs-slide="prev">
+                    <button class="carousel-control-prev" type="button" data-bs-target="#topPostsCarousel" data-bs-slide="prev">
                         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                         <span class="visually-hidden">Previous</span>
                     </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#topPostsCarousel"
-                        data-bs-slide="next">
+                    <button class="carousel-control-next" type="button" data-bs-target="#topPostsCarousel" data-bs-slide="next">
                         <span class="carousel-control-next-icon" aria-hidden="true"></span>
                         <span class="visually-hidden">Next</span>
                     </button>
@@ -65,13 +63,11 @@
             </button>
 
             <div class="tag-navigation">
-                <a href="{% if search_query %}?search={{ search_query }}{% endif %}"
-                    class="tag-item {% if not selected_tag %}active{% endif %}">
+                <a href="{% if search_query %}?search={{ search_query }}{% endif %}" class="tag-item {% if not selected_tag %}active{% endif %}">
                     전체보기
                 </a>
                 {% for tag in top_tags %}
-                <a href="?tag={{ tag.tag }}{% if search_query %}&search={{ search_query }}{% endif %}"
-                    class="tag-item {% if tag.tag == selected_tag %}active{% endif %}">
+                <a href="?tag={{ tag.tag }}{% if search_query %}&search={{ search_query }}{% endif %}" class="tag-item {% if tag.tag == selected_tag %}active{% endif %}">
                     {{ tag.tag }}
                     <span class="tag-count">{{ tag.count }}</span>
                 </a>
@@ -88,8 +84,7 @@
 
             <div class="d-flex gap-3">
                 <form method="get" class="d-flex gap-2">
-                    <input type="text" name="search" class="form-control" placeholder="제목으로 검색"
-                        value="{{ search_query }}">
+                    <input type="text" name="search" class="form-control" placeholder="제목으로 검색" value="{{ search_query }}">
                     {% if selected_tag %}
                     <input type="hidden" name="tag" value="{{ selected_tag }}">
                     {% endif %}

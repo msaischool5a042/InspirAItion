@@ -719,6 +719,9 @@ def public_gallery(request):
 
     top_tags = TagUsage.objects.order_by("-count")[:10]
     top_posts = get_top_liked_posts()
+    for post in top_posts:
+        if post.image:
+            post.thumb = post.image.replace("uploads/", "resized/thumb_")
 
     return render(
         request,
